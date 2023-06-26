@@ -53,6 +53,27 @@ class Card {
 
 
 
+class Hand {
+  cards = [];
+
+  addCard(card) {
+    this.cards.push(card);
+  }
+
+  sortByRank() { // does not mutate original array 'cards'
+    let sortedCards = [...this.cards];
+    sortedCards.sort((card1, card2) => card1.rank - card2.rank);
+    return sortedCards;
+  }
+
+  containsFlush() { // working with ==, not with ===
+    let suits = this.cards.map((card) => card.suit);
+    return suits.reduce((suit1, suit2) => suit1 == suit2);
+  }
+}
+
+
+
 class Deck {
   cards = [];
 
@@ -74,6 +95,42 @@ class Deck {
 } // END OF CLASS "DECK"
 
 
+
+
+const newGame = () => {
+
+  // QUERY SELECTORS
+  const cardDiv1 = document.querySelector("#cardDiv1");
+  const cardDiv2 = document.querySelector("#cardDiv2");
+  const cardDiv3 = document.querySelector("#cardDiv3");
+  const cardDiv4 = document.querySelector("#cardDiv4");
+  const cardDiv5 = document.querySelector("#cardDiv5");
+  const resultOutput = document.querySelector(".resultOutput");
+
+  let myDeck = new Deck();
+  let myHand = new Hand();
+
+  for(let i=1; i<=5; i++) {
+    let currentCard = myDeck.draw();
+    //let currentCard = new Card(i+1, 1);
+    myHand.addCard(currentCard);
+  }
+
+  for(let i=1; i<=5; i++) {
+    //let mySortedHand = myHand.sortByRank();
+    let currentCard = myHand.cards[i-1];
+    //let currentCard = new Card(i+1, 1);
+    let currentCardDiv = document.querySelector("#cardDiv" + i.toString());
+    currentCardDiv.innerHTML = currentCard.toString();
+  }
+
+  if(myHand.containsFlush()) {
+    resultOutput.innerHTML = "FLUSH";
+  }
+  
+} // END OF "NEWGAME()"
+
+
 // STEP 1
 // let player pick which cards to hold, confirm w/ button click
 
@@ -91,28 +148,3 @@ class Deck {
 
 // STEP 6
 // add credits according to outcome
-
-
-
-
-const newGame = () => {
-
-  // QUERY SELECTORS
-  const cardDiv1 = document.querySelector("#cardDiv1");
-  const cardDiv2 = document.querySelector("#cardDiv2");
-  const cardDiv3 = document.querySelector("#cardDiv3");
-  const cardDiv4 = document.querySelector("#cardDiv4");
-  const cardDiv5 = document.querySelector("#cardDiv5");
-
-  let myDeck = new Deck();
-
-  for(let i=1; i<=5; i++) {
-    let currentCardDiv = document.querySelector("#cardDiv" + parseInt(i));
-    let currentCard = myDeck.draw();
-    //currentCardDiv.innerHTML = "<br>" + currentCard.rank + " / " + currentCard.suit;
-    currentCardDiv.innerHTML = currentCard.toString();
-  }
-
-
-  
-}

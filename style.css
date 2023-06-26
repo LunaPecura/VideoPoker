@@ -37,3 +37,10 @@
   height: 50px;
   border: solid palevioletred;
 }
+
+.resultOutput {
+  width: 300px;
+  border: solid turquoise;
+  line-height: 30px;
+  padding: 10px;
+}
