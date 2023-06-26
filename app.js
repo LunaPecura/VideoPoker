@@ -66,6 +66,74 @@ class Hand {
     return sortedCards;
   }
 
+  makeDiffArray() {
+    let sortedCards = this.sortByRank();
+    let diffArray = [];
+    for(let i=0; i<4; i++) {
+      diffArray.push(sortedCards[i+1].rank - sortedCards[i].rank);
+    }
+    console.log(diffArray);
+    return diffArray;
+  }
+
+  determineResult() {
+    let sortedCards = this.sortByRank();
+    let diffArray = this.makeDiffArray();
+    let result = "none";
+
+    // if diffArray = [1,1,1,1] -- straight
+    if(diffArray.filter((element) => element == 1).length === 4) {
+      result = "straight";
+    }
+    
+    // if diffArray contains three 0s -- four of a kind or full house
+    if(diffArray.filter((element) => element == 0).length === 3) {
+
+      // if three consecutive 0s -- four of a kind
+      if(diffArray[0] != 0 || diffArray[3] != 0) {
+        result = "four of a kind"
+      } else {
+        // if three non-consecutive 0s -- full house
+        result = "full house";
+      }
+    }
+    
+    // if diffArray contains two 0s -- three of a kind or two pair
+    if(diffArray.filter((element) => element == 0).length === 2) {
+
+      // if diffarray contains two consecutive 0s -- three of a kind
+      if(diffArray.lastIndexOf(0) - diffArray.indexOf(0) === 1) {
+        result = "three of a kind";
+
+        // if diffArray contains two non-consecutive 0s -- two pair
+      } else {
+        result = "two pair";
+      }
+    }
+
+    // if diffArray contains one 0 -- pair
+    if(diffArray.filter((element) => element == 0).length === 1) {
+      result = "one pair";
+    }
+
+    // check for straight flush
+    if(this.containsFlush()) {
+      switch(result) {
+        case "straight": result += " flush"; break;
+        default: result = "flush"; break;
+      }
+    }
+
+    // check for royal flush
+    if(result === "straight flush") {
+      if(sortedCards[4].rank === 14) {
+        result = "royal flush";
+      }
+    }
+  
+    return result;
+  }
+
   containsFlush() { // working with ==, not with ===
     let suits = this.cards.map((card) => card.suit);
     return suits.reduce((suit1, suit2) => suit1 == suit2);
@@ -115,18 +183,18 @@ const newGame = () => {
     //let currentCard = new Card(i+1, 1);
     myHand.addCard(currentCard);
   }
-
+  let mySortedHand = myHand.sortByRank();
   for(let i=1; i<=5; i++) {
-    //let mySortedHand = myHand.sortByRank();
-    let currentCard = myHand.cards[i-1];
-    //let currentCard = new Card(i+1, 1);
+    
+    let currentCard = mySortedHand[i-1];
+    //let currentCard = myHand.cards[i-1];
+    
     let currentCardDiv = document.querySelector("#cardDiv" + i.toString());
     currentCardDiv.innerHTML = currentCard.toString();
   }
 
-  if(myHand.containsFlush()) {
-    resultOutput.innerHTML = "FLUSH";
-  }
+  //myHand.makeDiffArray();
+  resultOutput.innerHTML = myHand.determineResult();
   
 } // END OF "NEWGAME()"
 
