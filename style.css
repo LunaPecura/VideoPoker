@@ -1,0 +1,39 @@
+.mainContainer {
+  width: 800px;
+  height: 600px;
+  border: solid black;
+}
+
+.topBar {
+  display: flex;
+  height: 50px;
+  border: solid purple;
+}
+
+.payoutBoard {
+  display: flex;
+  height: 275px;
+  border: solid lightseagreen;
+}
+
+.payoutCol {
+  width: 18%;
+  border: solid orange;
+}
+
+.cardPanel {
+  display: flex;
+  height: 200px;
+  border: solid greenyellow;
+}
+
+.cardDiv {
+  width: 20%;
+  border: solid blueviolet;
+}
+
+.buttonPanel {
+  display: flex;
+  height: 50px;
+  border: solid palevioletred;
+}
