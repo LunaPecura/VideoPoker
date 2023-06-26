@@ -41,6 +41,8 @@
 .resultOutput {
   width: 300px;
   border: solid turquoise;
-  line-height: 30px;
+  line-height: 25px;
   padding: 10px;
+  font-weight: 900;
+  font-size: 20px;
 }

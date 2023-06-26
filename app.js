@@ -48,7 +48,6 @@ class Card {
     return result;
 
   } // END OF METHOD "TOSTRING()"
-
 } // END OF CLASS "CARD"
 
 
@@ -72,8 +71,12 @@ class Hand {
     for(let i=0; i<4; i++) {
       diffArray.push(sortedCards[i+1].rank - sortedCards[i].rank);
     }
-    console.log(diffArray);
     return diffArray;
+  }
+
+  containsFlush() { // working with ==, not with ===
+    let suits = this.cards.map((card) => card.suit);
+    return suits.reduce((suit1, suit2) => suit1 == suit2);
   }
 
   determineResult() {
@@ -81,39 +84,23 @@ class Hand {
     let diffArray = this.makeDiffArray();
     let result = "none";
 
-    // if diffArray = [1,1,1,1] -- straight
-    if(diffArray.filter((element) => element == 1).length === 4) {
-      result = "straight";
-    }
+    const numberOfOnes = diffArray.filter((element) => element == 1).length;
+    const numberOfZeros = diffArray.filter((element) => element == 0).length;
+
+    if(numberOfOnes === 4) { result = "straight"; }
     
-    // if diffArray contains three 0s -- four of a kind or full house
-    if(diffArray.filter((element) => element == 0).length === 3) {
-
-      // if three consecutive 0s -- four of a kind
-      if(diffArray[0] != 0 || diffArray[3] != 0) {
-        result = "four of a kind"
-      } else {
-        // if three non-consecutive 0s -- full house
-        result = "full house";
-      }
-    }
-    
-    // if diffArray contains two 0s -- three of a kind or two pair
-    if(diffArray.filter((element) => element == 0).length === 2) {
-
-      // if diffarray contains two consecutive 0s -- three of a kind
-      if(diffArray.lastIndexOf(0) - diffArray.indexOf(0) === 1) {
-        result = "three of a kind";
-
-        // if diffArray contains two non-consecutive 0s -- two pair
-      } else {
-        result = "two pair";
-      }
-    }
-
-    // if diffArray contains one 0 -- pair
-    if(diffArray.filter((element) => element == 0).length === 1) {
-      result = "one pair";
+    switch(numberOfZeros) {
+      case 3:
+        if(diffArray[0] != 0 || diffArray[3] != 0) { 
+          result = "four of a kind"; // three consecutive 0s
+        } else { result = "full house"; } // three non-consecutive 0s
+        break;
+      case 2: 
+        if(diffArray.lastIndexOf(0) - diffArray.indexOf(0) === 1) {
+          result = "three of a kind"; // two consecutive 0s
+        } else { result = "two pair"; } // two non-consecutive 0s
+        break;
+      case 1: result = "one pair"; break; // singular 0
     }
 
     // check for straight flush
@@ -132,13 +119,9 @@ class Hand {
     }
   
     return result;
-  }
 
-  containsFlush() { // working with ==, not with ===
-    let suits = this.cards.map((card) => card.suit);
-    return suits.reduce((suit1, suit2) => suit1 == suit2);
-  }
-}
+  } // END OF METHOD 'DETERMINERESULT'
+} // END OF CLASS 'HAND'
 
 
 
@@ -185,16 +168,12 @@ const newGame = () => {
   }
   let mySortedHand = myHand.sortByRank();
   for(let i=1; i<=5; i++) {
-    
-    let currentCard = mySortedHand[i-1];
-    //let currentCard = myHand.cards[i-1];
-    
+    let currentCard = mySortedHand[i-1];    
     let currentCardDiv = document.querySelector("#cardDiv" + i.toString());
     currentCardDiv.innerHTML = currentCard.toString();
   }
 
-  //myHand.makeDiffArray();
-  resultOutput.innerHTML = myHand.determineResult();
+  resultOutput.innerHTML = myHand.determineResult().toUpperCase();
   
 } // END OF "NEWGAME()"
 
