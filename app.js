@@ -15,33 +15,35 @@ class Card {
     this.suit = suit;
   }
 
+  isRed() {
+    return (this.suit === 2 || this.suit === 3);
+  }
+
   toString() {
     let result = "";
 
     switch(this.rank) {
-      case 2: result += "Two"; break;
-      case 3: result += "Three"; break;
-      case 4: result += "Four"; break;
-      case 5: result += "Five"; break;
-      case 6: result += "Six"; break;
-      case 7: result += "Seven"; break;
-      case 8: result += "Eight"; break;
-      case 9: result += "Nine"; break;
-      case 10: result += "Ten"; break;
-      case 11: result += "Jack"; break;
-      case 12: result += "Queen"; break;
-      case 13: result += "King"; break;
-      case 14: result += "Ace"; break;
+      case 2: result += "2"; break;
+      case 3: result += "3"; break;
+      case 4: result += "4"; break;
+      case 5: result += "5"; break;
+      case 6: result += "6"; break;
+      case 7: result += "7"; break;
+      case 8: result += "8"; break;
+      case 9: result += "9"; break;
+      case 10: result += "10"; break;
+      case 11: result += "J"; break;
+      case 12: result += "Q"; break;
+      case 13: result += "K"; break;
+      case 14: result += "A"; break;
       default: result += "Error"; break;
     }
 
-    result += " ";
-
     switch(this.suit) {
-      case 1: result += "Clubs"; break;
-      case 2: result += "Diamonds"; break;
-      case 3: result += "Hearts"; break;
-      case 4: result += "Spades"; break;
+      case 1: result += "&clubsuit;"; break;
+      case 2: result += "&diamondsuit;"; break;
+      case 3: result += "&heartsuit;"; break;
+      case 4: result += "&spadesuit;"; break;
       default: result += "Error"; break;
     }
 
@@ -149,33 +151,40 @@ class Deck {
 
 
 const newGame = () => {
+  newHand();
+}
 
-  // QUERY SELECTORS
-  const cardDiv1 = document.querySelector("#cardDiv1");
-  const cardDiv2 = document.querySelector("#cardDiv2");
-  const cardDiv3 = document.querySelector("#cardDiv3");
-  const cardDiv4 = document.querySelector("#cardDiv4");
-  const cardDiv5 = document.querySelector("#cardDiv5");
-  const resultOutput = document.querySelector(".resultOutput");
-
+const newHand = () => {
+  
   let myDeck = new Deck();
   let myHand = new Hand();
 
   for(let i=1; i<=5; i++) {
     let currentCard = myDeck.draw();
-    //let currentCard = new Card(i+1, 1);
     myHand.addCard(currentCard);
   }
   let mySortedHand = myHand.sortByRank();
   for(let i=1; i<=5; i++) {
-    let currentCard = mySortedHand[i-1];    
-    let currentCardDiv = document.querySelector("#cardDiv" + i.toString());
-    currentCardDiv.innerHTML = currentCard.toString();
+    let currentCard = mySortedHand[i-1];
+    let currentCardArea;
+    let altCardArea;
+    
+    if(currentCard.isRed()) {
+      currentCardArea = document.querySelector("#cardArea" + i.toString() + "R");
+      altCardArea = document.querySelector("#cardArea" + i.toString())
+    } else {
+      currentCardArea = document.querySelector("#cardArea" + i.toString());
+      altCardArea = document.querySelector("#cardArea" + i.toString() + "R");
+    }
+    currentCardArea.setAttribute("style", "display:block");
+    altCardArea.setAttribute("style", "display:none");
+    currentCardArea.innerHTML = currentCard.toString();
   }
 
+  const resultOutput = document.querySelector(".resultOutput");
   resultOutput.innerHTML = myHand.determineResult().toUpperCase();
   
-} // END OF "NEWGAME()"
+} // END OF "NEW HAND()"
 
 
 // STEP 1

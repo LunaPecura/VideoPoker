@@ -12,18 +12,18 @@
 
 .payoutBoard {
   display: flex;
-  height: 275px;
+  height: 200px;
   border: solid lightseagreen;
 }
 
 .payoutCol {
-  width: 18%;
+  width: 50%;
   border: solid orange;
 }
 
 .cardPanel {
   display: flex;
-  height: 200px;
+  height: 250px;
   border: solid greenyellow;
 }
 
@@ -32,10 +32,37 @@
   border: solid blueviolet;
 }
 
+.holdButton {
+  width: 100%;
+  height: 35px;
+  border: solid gray;
+}
+
+.cardArea {
+  height: 205px;
+  font-size: 75px;
+  font-weight: 900;
+  line-height: 200px;
+  text-align: center;
+  color: black;
+  border: solid gray;
+}
+
+.cardArea.red {
+  color: darkred;
+  display: none;
+}
+
 .buttonPanel {
   display: flex;
   height: 50px;
   border: solid palevioletred;
+}
+
+.newGameButton, .newHandButton {
+  padding: 5px;
+  width: 100px;
+  margin: 10px;
 }
 
 .resultOutput {
