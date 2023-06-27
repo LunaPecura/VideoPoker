@@ -122,7 +122,7 @@ class Hand {
   
     return result;
 
-  } // END OF METHOD 'DETERMINERESULT'
+  } // END OF METHOD 'DETERMINE RESULT'
 } // END OF CLASS 'HAND'
 
 
@@ -147,25 +147,38 @@ class Deck {
 
 } // END OF CLASS "DECK"
 
-
+// GLOBAL VARIABLES
+let currentDeck;
+let currentHand;
+let roundCount;
 
 
 const newGame = () => {
-  newHand();
+  roundCount = 0;
+  document.querySelector(".roundCount").innerHTML = "";
 }
 
-const newHand = () => {
+const dealHand = () => {
   
-  let myDeck = new Deck();
-  let myHand = new Hand();
+  currentDeck = new Deck();
+  currentHand = new Hand();
 
+  // maintain round count
+  roundCount++;
+  document.querySelector(".roundCount").innerHTML = "Round " + roundCount;
+
+
+  // draw five cards
   for(let i=1; i<=5; i++) {
-    let currentCard = myDeck.draw();
-    myHand.addCard(currentCard);
+    currentHand.addCard(currentDeck.draw());
   }
-  let mySortedHand = myHand.sortByRank();
+
+  // show cards in ascending order
+  let sortedHand = currentHand.sortByRank();
+
+  // display each card
   for(let i=1; i<=5; i++) {
-    let currentCard = mySortedHand[i-1];
+    let currentCard = sortedHand[i-1];
     let currentCardArea;
     let altCardArea;
     
@@ -181,11 +194,16 @@ const newHand = () => {
     currentCardArea.innerHTML = currentCard.toString();
   }
 
+  // display outcome
   const resultOutput = document.querySelector(".resultOutput");
-  resultOutput.innerHTML = myHand.determineResult().toUpperCase();
+  resultOutput.innerHTML = currentHand.determineResult().toUpperCase();
   
 } // END OF "NEW HAND()"
 
+
+const hold = i => {
+
+}
 
 // STEP 1
 // let player pick which cards to hold, confirm w/ button click

@@ -55,35 +55,35 @@
 
         <!--card 1-->
         <div class="cardDiv" id="cardDiv1">
-          <button class="holdButton" id="holdButton1">Hold</button>
+          <button class="holdButton" id="holdButton1" onclick="hold(1)">Hold</button>
           <div class="cardArea" id="cardArea1"></div>
           <div class="cardArea red" id="cardArea1R"></div>
         </div>
 
         <!--card 2-->
         <div class="cardDiv" id="cardDiv2">
-          <button class="holdButton" id="holdButton2">Hold</button>
+          <button class="holdButton" id="holdButton2" onclick="hold(2)">Hold</button>
           <div class="cardArea" id="cardArea2"></div>
           <div class="cardArea red" id="cardArea2R"></div>
         </div>
 
         <!--card 3-->
         <div class="cardDiv" id="cardDiv3">
-          <button class="holdButton" id="holdButton3">Hold</button>
+          <button class="holdButton" id="holdButton3" onclick="hold(3)">Hold</button>
           <div class="cardArea" id="cardArea3"></div>
           <div class="cardArea red" id="cardArea3R"></div>
         </div>
 
         <!--card 4-->
         <div class="cardDiv" id="cardDiv4">
-          <button class="holdButton" id="holdButton4">Hold</button>
+          <button class="holdButton" id="holdButton4" onclick="hold(4)">Hold</button>
           <div class="cardArea" id="cardArea4"></div>
           <div class="cardArea red" id="cardArea4R"></div>
         </div>
 
         <!--card 5-->
         <div class="cardDiv" id="cardDiv5">
-          <button class="holdButton" id="holdButton5">Hold</button>
+          <button class="holdButton" id="holdButton5" onclick="hold(5)">Hold</button>
           <div class="cardArea" id="cardArea5"></div>
           <div class="cardArea red" id="cardArea5R"></div>
         </div>
@@ -93,13 +93,12 @@
 
       <!--button panel-->
       <div class="buttonPanel">
-        <!--button new game-->
         <button class="newGameButton" onclick="newGame()">New Game</button>
-        <!--button draw new hand-->
-        <button class="newHandButton" onclick="newHand()">New Hand</button>
+        <button class="dealHandButton" onclick="dealHand()">Deal Hand</button>
         <!--button increase bet (disable when at min)-->
         <!--button decrease bet (disable when at max)-->
         <div class="resultOutput">RESULT</div>
+        <div class="roundCount"></div>
       </div>
 
     </div> <!--END OF MAIN CONTAINER-->
