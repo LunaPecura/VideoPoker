@@ -89,7 +89,7 @@ class Hand {
     const numberOfOnes = diffArray.filter((element) => element == 1).length;
     const numberOfZeros = diffArray.filter((element) => element == 0).length;
 
-    if(numberOfOnes === 4) { result = "straight"; }
+    if(numberOfOnes === 4) { result = "straight"; } // four 1s
     
     switch(numberOfZeros) {
       case 3:
@@ -149,6 +149,24 @@ class Deck {
 
 
 
+class ButtonHandler {
+  selector;
+  handler;
+
+  constructor(selector) {
+    this.selector = selector;
+    this.handler = document.querySelector(this.selector); 
+  }
+
+  enable() {
+    this.handler.removeAttribute("disabled");
+  }
+
+  disable() {
+    this.handler.setAttribute("disabled", true);
+  }
+}
+
 
 
 // GLOBAL VARIABLES
@@ -159,7 +177,12 @@ let roundCount;
 let newHand;
 let toHold;
 
+// QUERY SELECTORS
 const resultOutput = document.querySelector(".resultOutput");
+const newGameButton = new ButtonHandler(".newGameButton");
+const dealHandButton = new ButtonHandler(".dealHandButton");
+const drawButton = new ButtonHandler(".drawButton");
+const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
 
 
 const newGame = () => {
@@ -169,8 +192,8 @@ const newGame = () => {
   document.querySelector(".roundCount").innerHTML = "";
 
   // toggle buttons
-  document.querySelector(".newGameButton").setAttribute("disabled", true);
-  document.querySelector(".dealHandButton").removeAttribute("disabled");
+  newGameButton.disable();
+  dealHandButton.enable();
 }
 
 
@@ -183,13 +206,9 @@ const dealHand = () => {
   toHold = new Set();
 
   // toggle buttons
-  document.querySelector(".dealHandButton").setAttribute("disabled", true);
-  document.querySelector(".drawButton").removeAttribute("disabled");
-
-  // enable all hold buttons
-  for(let i=1; i<=5; i++) {
-    document.querySelector("#holdButton" + i).removeAttribute("disabled");
-  }
+  dealHandButton.disable();
+  drawButton.enable();
+  holdButtons.forEach(button => button.enable());
 
   // maintain round count
   roundCount++;
@@ -229,7 +248,7 @@ const dealHand = () => {
 
 const hold = i => {
   toHold.add(i);
-  document.querySelector("#holdButton" + i).setAttribute("disabled", true);
+  holdButtons[i-1].disable();
 }
 
 
@@ -237,14 +256,10 @@ const draw = () => {
   newHand = new Hand();
 
   // toggle buttons
-  document.querySelector(".drawButton").setAttribute("disabled", true);
-  document.querySelector(".dealHandButton").removeAttribute("disabled");
+  drawButton.disable();
+  dealHandButton.enable();
+  holdButtons.forEach(button => button.disable())
 
-  // disable all hold buttons
-  for(let i=1; i<=5; i++) {
-    document.querySelector("#holdButton" + i).setAttribute("disabled", true);
-  }
-  
   for(i=1; i<=5; i++) {
     if(toHold.has(i)) {
       newHand.addCard(sortedHand[i-1]);
