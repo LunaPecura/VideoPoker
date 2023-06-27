@@ -59,14 +59,14 @@
   border: solid palevioletred;
 }
 
-.newGameButton, .dealHandButton {
+.newGameButton, .dealHandButton, .drawButton {
   padding: 5px;
   width: 100px;
   margin: 10px;
 }
 
 .resultOutput {
-  width: 300px;
+  width: 250px;
   border: solid turquoise;
   line-height: 25px;
   padding: 10px;
@@ -75,6 +75,7 @@
 }
 
 .roundCount {
+  width: 132px;
   border: solid orchid;
   line-height: 25px;
   padding: 10px;

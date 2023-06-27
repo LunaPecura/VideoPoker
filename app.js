@@ -147,26 +147,53 @@ class Deck {
 
 } // END OF CLASS "DECK"
 
+
+
+
+
 // GLOBAL VARIABLES
 let currentDeck;
 let currentHand;
+let sortedHand;
 let roundCount;
+let newHand;
+let toHold;
+
+const resultOutput = document.querySelector(".resultOutput");
 
 
 const newGame = () => {
+  
+  // maintain round count
   roundCount = 0;
   document.querySelector(".roundCount").innerHTML = "";
+
+  // toggle buttons
+  document.querySelector(".newGameButton").setAttribute("disabled", true);
+  document.querySelector(".dealHandButton").removeAttribute("disabled");
 }
+
+
 
 const dealHand = () => {
   
+  // initialize global variables
   currentDeck = new Deck();
   currentHand = new Hand();
+  toHold = new Set();
+
+  // toggle buttons
+  document.querySelector(".dealHandButton").setAttribute("disabled", true);
+  document.querySelector(".drawButton").removeAttribute("disabled");
+
+  // enable all hold buttons
+  for(let i=1; i<=5; i++) {
+    document.querySelector("#holdButton" + i).removeAttribute("disabled");
+  }
 
   // maintain round count
   roundCount++;
   document.querySelector(".roundCount").innerHTML = "Round " + roundCount;
-
 
   // draw five cards
   for(let i=1; i<=5; i++) {
@@ -174,7 +201,7 @@ const dealHand = () => {
   }
 
   // show cards in ascending order
-  let sortedHand = currentHand.sortByRank();
+  sortedHand = currentHand.sortByRank();
 
   // display each card
   for(let i=1; i<=5; i++) {
@@ -195,14 +222,54 @@ const dealHand = () => {
   }
 
   // display outcome
-  const resultOutput = document.querySelector(".resultOutput");
   resultOutput.innerHTML = currentHand.determineResult().toUpperCase();
   
-} // END OF "NEW HAND()"
+} // END OF "DEAL HAND()"
 
 
 const hold = i => {
+  toHold.add(i);
+  document.querySelector("#holdButton" + i).setAttribute("disabled", true);
+}
 
+
+const draw = () => {
+  newHand = new Hand();
+
+  // toggle buttons
+  document.querySelector(".drawButton").setAttribute("disabled", true);
+  document.querySelector(".dealHandButton").removeAttribute("disabled");
+
+  // disable all hold buttons
+  for(let i=1; i<=5; i++) {
+    document.querySelector("#holdButton" + i).setAttribute("disabled", true);
+  }
+  
+  for(i=1; i<=5; i++) {
+    if(toHold.has(i)) {
+      newHand.addCard(sortedHand[i-1]);
+    } else { 
+      let currentCard = currentDeck.draw();
+      let currentCardArea;
+      let altCardArea;
+
+      newHand.addCard(currentCard);
+        
+      if(currentCard.isRed()) {
+        currentCardArea = document.querySelector("#cardArea" + i.toString() + "R");
+        altCardArea = document.querySelector("#cardArea" + i.toString())
+      } else {
+        currentCardArea = document.querySelector("#cardArea" + i.toString());
+        altCardArea = document.querySelector("#cardArea" + i.toString() + "R");
+      }
+      currentCardArea.setAttribute("style", "display:block");
+      altCardArea.setAttribute("style", "display:none");
+      currentCardArea.innerHTML = currentCard.toString();
+    }
+  }
+
+  // display outcome
+  resultOutput.innerHTML = newHand.determineResult().toUpperCase();
 }
 
 // STEP 1
