@@ -10,6 +10,18 @@
   border: solid purple;
 }
 
+.creditDisplay {
+    width: 300px;
+    margin: auto;
+    border: solid orchid;
+    height: 25px;
+    line-height: 25px;
+    padding: 10px;
+    font-weight: 900;
+    font-size: 20px;
+    text-align: center;
+}
+
 .payoutBoard {
   display: flex;
   height: 200px;
@@ -53,16 +65,23 @@
   display: none;
 }
 
-.buttonPanel {
+.bottomPanel {
   display: flex;
   height: 50px;
   border: solid palevioletred;
 }
 
+.buttonPanel {
+  border: solid gray;
+  width: 350px;
+  display: flex;
+  justify-content: space-between;
+}
+
 .newGameButton, .dealHandButton, .drawButton {
   padding: 5px;
   width: 100px;
-  margin: 10px;
+  margin: 5px;
 }
 
 .resultOutput {
@@ -76,7 +95,7 @@
 }
 
 .roundCount {
-  width: 132px;
+  width: 135px;
   border: solid orchid;
   line-height: 25px;
   padding: 10px;

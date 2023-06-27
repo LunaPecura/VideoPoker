@@ -20,6 +20,7 @@
         <!--current game mode (Jacks or Better / Deuces Wild / etc)-->
         <!--current betting amount (1-5)-->
         <!--current credits-->
+        <div class="creditDisplay">CREDIT</div>
       </div>
 
 
@@ -44,8 +45,6 @@
         <div class="payoutCol">
           <!--[800 / 50 / 25 / 9 / 6 / 4 / 3 / 2 / 1 / 0]-->
         </div>
-
-       
 
       </div> <!--END OF PAYOUT BOARD-->
 
@@ -91,13 +90,15 @@
       </div> <!--END OF CARD PANEL-->
 
 
-      <!--button panel-->
-      <div class="buttonPanel">
-        <button class="newGameButton" onclick="newGame()">New Game</button>
-        <button class="dealHandButton" disabled onclick="dealHand()">Deal Hand</button>
-        <button class="drawButton" disabled onclick="draw()">Draw</button>
+      <!--bottom panel-->
+      <div class="bottomPanel">
+        <div class="buttonPanel">
+          <button class="newGameButton" onclick="newGame()">New Game</button>
+          <button class="dealHandButton" disabled onclick="dealHand()">Deal Hand</button>
+          <button class="drawButton" disabled onclick="draw()">Draw</button>
         <!--button increase bet (disable when at min)-->
         <!--button decrease bet (disable when at max)-->
+        </div>
         <div class="resultOutput">RESULT</div>
         <div class="roundCount"></div>
       </div>

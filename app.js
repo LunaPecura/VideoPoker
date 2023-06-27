@@ -85,24 +85,40 @@ class Hand {
     let sortedCards = this.sortByRank();
     let diffArray = this.makeDiffArray();
     let result = "none";
+    payout = 0; // global
 
     const numberOfOnes = diffArray.filter((element) => element == 1).length;
     const numberOfZeros = diffArray.filter((element) => element == 0).length;
 
-    if(numberOfOnes === 4) { result = "straight"; } // four 1s
+    if(numberOfOnes === 4) {  // four 1s => straight
+      result = "straight"; 
+      payout = 4 ;
+    } 
     
     switch(numberOfZeros) {
       case 3:
         if(diffArray[0] != 0 || diffArray[3] != 0) { 
-          result = "four of a kind"; // three consecutive 0s
-        } else { result = "full house"; } // three non-consecutive 0s
+          result = "four of a kind"; // three consecutive 0s => four of a kind
+          payout = 25;
+        } else {  // three non-consecutive 0s => full house
+          result = "full house"; 
+          payout = 9;
+        } 
         break;
       case 2: 
-        if(diffArray.lastIndexOf(0) - diffArray.indexOf(0) === 1) {
-          result = "three of a kind"; // two consecutive 0s
-        } else { result = "two pair"; } // two non-consecutive 0s
+        if(diffArray.lastIndexOf(0) - diffArray.indexOf(0) === 1) { // two consecutive 0s
+          result = "three of a kind"; 
+          payout = 3;
+        } else { // two non-consecutive 0s
+          result = "two pair"; 
+          payout = 2;
+        } 
         break;
-      case 1: result = "one pair"; break; // singular 0
+      case 1: // singular 0
+        if(sortedCards[diffArray.indexOf(0)].rank > 10) {
+          result = "jacks or better";
+          payout = 1;
+        }
     }
 
     // check for straight flush
@@ -193,10 +209,13 @@ let newHand;
 let toHold;
 let currentResult;
 let newResult;
+let credit;
+let payout;
 
 // QUERY SELECTORS
 const resultDisplay = new DisplayHandler(".resultOutput");
-const roundDisplay = new DisplayHandler(".roundCount")
+const roundDisplay = new DisplayHandler(".roundCount");
+const creditDisplay = new DisplayHandler(".creditDisplay");
 /* ------------------------------------------------------- */
 const newGameButton = new ButtonHandler(".newGameButton");
 const dealHandButton = new ButtonHandler(".dealHandButton");
@@ -206,9 +225,13 @@ const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
 
 const newGame = () => {
   
-  // maintain round count
+  // establish round count
   roundCount = 0;
   roundDisplay.update("Round");
+
+  // establish credit
+  credit = 10;
+  creditDisplay.update("Credit: " + credit);
 
   // toggle buttons
   newGameButton.disable();
@@ -224,9 +247,11 @@ const dealHand = () => {
   currentHand = new Hand();
   toHold = new Set();
 
-  // maintain round count
+  // maintain round count and credit
   roundCount++;
   roundDisplay.update("Round " + roundCount);
+  credit--;
+  creditDisplay.update("Credit: " + credit);
 
   // toggle buttons
   dealHandButton.disable();
@@ -306,6 +331,10 @@ const draw = () => {
   // post-draw outcome of the hand
   let newResult = newHand.determineResult();
   resultDisplay.update(newResult.toUpperCase());
+
+  // update credits
+  credit += payout;
+  creditDisplay.update("Credit: " + credit + " (+" + payout + ")");
 }
 
 // STEP 1
