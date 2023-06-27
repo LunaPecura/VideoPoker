@@ -167,6 +167,21 @@ class ButtonHandler {
   }
 }
 
+class DisplayHandler {
+  selector;
+  handler; 
+
+  constructor(selector){
+    this.selector = selector;
+    this.handler = document.querySelector(selector);
+  }
+
+  update(content) {
+    this.handler.innerHTML = content;
+  }
+
+}
+
 
 
 // GLOBAL VARIABLES
@@ -176,9 +191,13 @@ let sortedHand;
 let roundCount;
 let newHand;
 let toHold;
+let currentResult;
+let newResult;
 
 // QUERY SELECTORS
-const resultOutput = document.querySelector(".resultOutput");
+const resultDisplay = new DisplayHandler(".resultOutput");
+const roundDisplay = new DisplayHandler(".roundCount")
+/* ------------------------------------------------------- */
 const newGameButton = new ButtonHandler(".newGameButton");
 const dealHandButton = new ButtonHandler(".dealHandButton");
 const drawButton = new ButtonHandler(".drawButton");
@@ -189,7 +208,7 @@ const newGame = () => {
   
   // maintain round count
   roundCount = 0;
-  document.querySelector(".roundCount").innerHTML = "";
+  roundDisplay.update("Round");
 
   // toggle buttons
   newGameButton.disable();
@@ -205,14 +224,14 @@ const dealHand = () => {
   currentHand = new Hand();
   toHold = new Set();
 
+  // maintain round count
+  roundCount++;
+  roundDisplay.update("Round " + roundCount);
+
   // toggle buttons
   dealHandButton.disable();
   drawButton.enable();
   holdButtons.forEach(button => button.enable());
-
-  // maintain round count
-  roundCount++;
-  document.querySelector(".roundCount").innerHTML = "Round " + roundCount;
 
   // draw five cards
   for(let i=1; i<=5; i++) {
@@ -240,8 +259,9 @@ const dealHand = () => {
     currentCardArea.innerHTML = currentCard.toString();
   }
 
-  // display outcome
-  resultOutput.innerHTML = currentHand.determineResult().toUpperCase();
+  // pre-draw outcome of the hand
+  currentResult = currentHand.determineResult();
+  resultDisplay.update(currentResult.toUpperCase());
   
 } // END OF "DEAL HAND()"
 
@@ -283,8 +303,9 @@ const draw = () => {
     }
   }
 
-  // display outcome
-  resultOutput.innerHTML = newHand.determineResult().toUpperCase();
+  // post-draw outcome of the hand
+  let newResult = newHand.determineResult();
+  resultDisplay.update(newResult.toUpperCase());
 }
 
 // STEP 1
