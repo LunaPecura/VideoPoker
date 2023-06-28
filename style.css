@@ -1,25 +1,43 @@
+
+/* COMMONS  **************************************************************************/
+
+.display {
+  height: 25px;
+  line-height: 25px;
+  padding: 10px;
+  font-weight: 900;
+  font-size: 20px;
+  text-align: center;
+}
+
+.verticalBar {
+  display: flex;
+  height: 50px;
+  background-color: black;
+  color: white;
+}
+
+button {
+  font-weight: 900;
+}
+
+
+/*  ************************************************************************************/
+
 .mainContainer {
   width: 800px;
-  height: 600px;
+  height: 575px;
   border: solid black;
 }
 
-.topBar {
-  display: flex;
-  height: 50px;
+.verticalBar.top {
   border: solid purple;
 }
 
-.creditDisplay {
-    width: 300px;
-    margin: auto;
-    border: solid orchid;
-    height: 25px;
-    line-height: 25px;
-    padding: 10px;
-    font-weight: 900;
-    font-size: 20px;
-    text-align: center;
+.display.credit {
+  width: 300px;
+  margin: auto;
+  border: solid orchid;
 }
 
 .payoutBoard {
@@ -41,13 +59,13 @@
 
 .cardDiv {
   width: 20%;
-  border: solid blueviolet;
+  border: solid turquoise;
 }
 
 .holdButton {
   width: 100%;
   height: 35px;
-  border: solid gray;
+  border: 2px solid lightgray;
 }
 
 .cardArea {
@@ -57,17 +75,10 @@
   line-height: 200px;
   text-align: center;
   color: black;
-  border: solid gray;
+  border: 2px solid lightgray;
 }
 
-.cardArea.red {
-  color: darkred;
-  display: none;
-}
-
-.bottomPanel {
-  display: flex;
-  height: 50px;
+.verticalBar.bottom {
   border: solid palevioletred;
 }
 
@@ -75,7 +86,7 @@
   border: solid gray;
   width: 350px;
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
 }
 
 .newGameButton, .dealHandButton, .drawButton {
@@ -84,22 +95,12 @@
   margin: 5px;
 }
 
-.resultOutput {
+.display.result {
   width: 250px;
   border: solid turquoise;
-  line-height: 25px;
-  padding: 10px;
-  font-weight: 900;
-  font-size: 20px;
-  text-align: center;
 }
 
-.roundCount {
+.display.round {
   width: 135px;
   border: solid orchid;
-  line-height: 25px;
-  padding: 10px;
-  font-weight: 900;
-  font-size: 20px;
-  text-align: center;
 }

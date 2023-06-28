@@ -4,8 +4,7 @@ function getRandomInt(min, max) { // taken from MDN
   return Math.floor(Math.random() * (max - min + 1) + min); 
 }
 
-
-
+/*---------------------------------------------------------------------------------------*/
 class Card {
   rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
   suit = 0; // int between 1 and 4 (clubs, diamonds, hearts, spades)
@@ -51,9 +50,7 @@ class Card {
 
   } // END OF METHOD "TOSTRING()"
 } // END OF CLASS "CARD"
-
-
-
+/*---------------------------------------------------------------------------------------*/
 class Hand {
   cards = [];
 
@@ -140,9 +137,7 @@ class Hand {
 
   } // END OF METHOD 'DETERMINE RESULT'
 } // END OF CLASS 'HAND'
-
-
-
+/*---------------------------------------------------------------------------------------*/
 class Deck {
   cards = [];
 
@@ -162,9 +157,7 @@ class Deck {
   }
 
 } // END OF CLASS "DECK"
-
-
-
+/*---------------------------------------------------------------------------------------*/
 class ButtonHandler {
   selector;
   handler;
@@ -182,22 +175,26 @@ class ButtonHandler {
     this.handler.setAttribute("disabled", true);
   }
 }
-
+/*---------------------------------------------------------------------------------------*/
 class DisplayHandler {
   selector;
   handler; 
 
   constructor(selector){
     this.selector = selector;
-    this.handler = document.querySelector(selector);
+    this.handler = document.querySelector(this.selector);
   }
 
   update(content) {
     this.handler.innerHTML = content;
   }
 
-}
+  setFontColor(newColor) {
+    (this.handler).style.color = newColor;
+  }
 
+}
+/*---------------------------------------------------------------------------------------*/
 
 
 // GLOBAL VARIABLES
@@ -213,9 +210,10 @@ let credit;
 let payout;
 
 // QUERY SELECTORS
-const resultDisplay = new DisplayHandler(".resultOutput");
-const roundDisplay = new DisplayHandler(".roundCount");
-const creditDisplay = new DisplayHandler(".creditDisplay");
+const resultDisplay = new DisplayHandler(".display.result");
+const roundDisplay = new DisplayHandler(".display.round");
+const creditDisplay = new DisplayHandler(".display.credit");
+const cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
 /* ------------------------------------------------------- */
 const newGameButton = new ButtonHandler(".newGameButton");
 const dealHandButton = new ButtonHandler(".dealHandButton");
@@ -225,13 +223,9 @@ const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
 
 const newGame = () => {
   
-  // establish round count
-  roundCount = 0;
-  roundDisplay.update("Round");
-
-  // establish credit
-  credit = 10;
-  creditDisplay.update("Credit: " + credit);
+  // establish round count & credit
+  roundCount = 0;  roundDisplay.update("Round");
+  credit = 10;  creditDisplay.update("Credit: " + credit);
 
   // toggle buttons
   newGameButton.disable();
@@ -248,10 +242,8 @@ const dealHand = () => {
   toHold = new Set();
 
   // maintain round count and credit
-  roundCount++;
-  roundDisplay.update("Round " + roundCount);
-  credit--;
-  creditDisplay.update("Credit: " + credit);
+  roundDisplay.update("Round " + ++roundCount);
+  creditDisplay.update("Credit: " + --credit);
 
   // toggle buttons
   dealHandButton.disable();
@@ -269,19 +261,12 @@ const dealHand = () => {
   // display each card
   for(let i=1; i<=5; i++) {
     let currentCard = sortedHand[i-1];
-    let currentCardArea;
-    let altCardArea;
+    let currentCardDisplay = cardDisplays[i-1];
+    currentCardDisplay.update(currentCard.toString());
     
     if(currentCard.isRed()) {
-      currentCardArea = document.querySelector("#cardArea" + i.toString() + "R");
-      altCardArea = document.querySelector("#cardArea" + i.toString())
-    } else {
-      currentCardArea = document.querySelector("#cardArea" + i.toString());
-      altCardArea = document.querySelector("#cardArea" + i.toString() + "R");
-    }
-    currentCardArea.setAttribute("style", "display:block");
-    altCardArea.setAttribute("style", "display:none");
-    currentCardArea.innerHTML = currentCard.toString();
+      currentCardDisplay.setFontColor("darkred");
+    } else {currentCardDisplay.setFontColor("black");}
   }
 
   // pre-draw outcome of the hand
@@ -305,26 +290,20 @@ const draw = () => {
   dealHandButton.enable();
   holdButtons.forEach(button => button.disable())
 
+  // create & display new hand
   for(i=1; i<=5; i++) {
     if(toHold.has(i)) {
       newHand.addCard(sortedHand[i-1]);
     } else { 
       let currentCard = currentDeck.draw();
-      let currentCardArea;
-      let altCardArea;
+      let currentCardDisplay = cardDisplays[i-1];
 
       newHand.addCard(currentCard);
-        
+      currentCardDisplay.update(currentCard.toString());
+      
       if(currentCard.isRed()) {
-        currentCardArea = document.querySelector("#cardArea" + i.toString() + "R");
-        altCardArea = document.querySelector("#cardArea" + i.toString())
-      } else {
-        currentCardArea = document.querySelector("#cardArea" + i.toString());
-        altCardArea = document.querySelector("#cardArea" + i.toString() + "R");
-      }
-      currentCardArea.setAttribute("style", "display:block");
-      altCardArea.setAttribute("style", "display:none");
-      currentCardArea.innerHTML = currentCard.toString();
+        currentCardDisplay.setFontColor("darkred");
+      } else {currentCardDisplay.setFontColor("black")};
     }
   }
 
@@ -337,20 +316,3 @@ const draw = () => {
   creditDisplay.update("Credit: " + credit + " (+" + payout + ")");
 }
 
-// STEP 1
-// let player pick which cards to hold, confirm w/ button click
-
-// STEP 2
-// remove non-held cards from player's hand
-
-// STEP 3
-// draw (& remove) corresponding number of cards from deck
-
-// STEP 4
-// replace player's non-held cards
-
-// STEP 5
-// determine outcome of hand
-
-// STEP 6
-// add credits according to outcome
