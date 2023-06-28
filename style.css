@@ -49,6 +49,25 @@ button {
 .payoutCol {
   width: 50%;
   border: solid orange;
+  background-color: black;
+  padding-top: 10px;
+}
+
+.payoutElement {
+  height: 20px;
+  font-size: 11px;
+  font-family: "Verdana";
+  color: greenyellow;
+}
+
+.payoutElement.left {
+  text-align: right;
+  padding-right: 5px;
+}
+
+.payoutElement.right {
+  text-align: left;
+  padding-left: 5px;
 }
 
 .cardPanel {
