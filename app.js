@@ -73,9 +73,10 @@ class Hand {
     return diffArray;
   }
 
-  containsFlush() { // working with ==, not with ===
+  containsFlush() {
     let suits = this.cards.map((card) => card.suit);
-    return suits.reduce((suit1, suit2) => suit1 == suit2);
+    let result = suits.map(suit => suit === suits[0]).reduce((p,q) => p && q);
+    return result;
   }
 
   determineResult() {
@@ -84,8 +85,8 @@ class Hand {
     let result = "none";
     payout = 0; // global
 
-    const numberOfOnes = diffArray.filter((element) => element == 1).length;
-    const numberOfZeros = diffArray.filter((element) => element == 0).length;
+    const numberOfOnes = diffArray.filter((element) => element === 1).length;
+    const numberOfZeros = diffArray.filter((element) => element === 0).length;
 
     if(numberOfOnes === 4) {  // four 1s => straight
       result = "straight"; 
@@ -118,11 +119,11 @@ class Hand {
         }
     }
 
-    // check for straight flush
+    // check for flush & straight flush
     if(this.containsFlush()) {
       switch(result) {
         case "straight": result += " flush"; break;
-        default: result = "flush"; break;
+        case "none": result = "flush"; break;
       }
     }
 
@@ -224,8 +225,12 @@ const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
 const newGame = () => {
   
   // establish round count & credit
-  roundCount = 0;  roundDisplay.update("Round");
-  credit = 10;  creditDisplay.update("Credit: " + credit);
+  roundCount = 0;
+  credit = 10;
+  roundDisplay.update("Round");
+  roundDisplay.setFontColor("white");
+  creditDisplay.update("Credit: " + credit);
+  creditDisplay.setFontColor("white");
 
   // toggle buttons
   newGameButton.disable();
@@ -244,6 +249,7 @@ const dealHand = () => {
   // maintain round count and credit
   roundDisplay.update("Round " + ++roundCount);
   creditDisplay.update("Credit: " + --credit);
+  creditDisplay.setFontColor("white");
 
   // toggle buttons
   dealHandButton.disable();
@@ -268,11 +274,14 @@ const dealHand = () => {
       currentCardDisplay.setFontColor("darkred");
     } else {currentCardDisplay.setFontColor("black");}
   }
-
+ 
   // pre-draw outcome of the hand
   currentResult = currentHand.determineResult();
   resultDisplay.update(currentResult.toUpperCase());
-  
+  if(currentResult === "none") {
+    resultDisplay.setFontColor("lightcoral");
+  } else { resultDisplay.setFontColor("lightgreen"); }
+
 } // END OF "DEAL HAND()"
 
 
@@ -310,9 +319,15 @@ const draw = () => {
   // post-draw outcome of the hand
   let newResult = newHand.determineResult();
   resultDisplay.update(newResult.toUpperCase());
+  if(newResult === "none") {
+    resultDisplay.setFontColor("lightcoral");
+  } else { resultDisplay.setFontColor("lightgreen") }
 
   // update credits
   credit += payout;
   creditDisplay.update("Credit: " + credit + " (+" + payout + ")");
+  if(payout === 0) {
+    creditDisplay.setFontColor("lightcoral");
+  } else { creditDisplay.setFontColor("lightgreen"); }
 }
 
