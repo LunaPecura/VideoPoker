@@ -408,7 +408,7 @@ const draw = () => {
 
 	lastResult = newResult;
 
-	if(credit === 0) {
+	if(credit === 0 && payout === 0) {
 		gameOver();
 	}
 } // END OF "draw()"
@@ -420,6 +420,8 @@ const gameOver = () => {
 	// display game over message
 	document.querySelector(".payoutBoard").setAttribute("style", "display:none");
 	document.querySelector(".gameOver").setAttribute("style", "display:block");
+	document.querySelector(".gameOver").innerHTML = 
+		"GAME OVER<br>You survived " + roundCount + " rounds"
 }
 
 
