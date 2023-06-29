@@ -202,7 +202,7 @@ class DisplayHandler {
 		this.handler = document.querySelector(this.selector);
 	}
 
-	update(content) {
+	updateContent(content) {
 		this.handler.innerHTML = content;
 	}
 
@@ -251,14 +251,22 @@ const newGame = () => {
 	// establish round count & credit
 	roundCount = 0;
 	credit = 10;
-	roundDisplay.update("Round");
+	roundDisplay.updateContent("Round");
 	roundDisplay.setFontColor("white");
-	creditDisplay.update("Credit: " + credit);
+	creditDisplay.updateContent("Credit: " + credit);
 	creditDisplay.setFontColor("white");
 
 	// toggle buttons
 	newGameButton.disable();
 	dealHandButton.enable();
+
+	cardDisplays.forEach(display => display.updateContent(" "));
+	cardDisplays.forEach(display => display.removeClass("onHold"));
+	holdButtons.forEach(button => button.removeClass("pressed"));
+
+	// remove game over message
+	document.querySelector(".payoutBoard").setAttribute("style", "display:flex");
+	document.querySelector(".gameOver").setAttribute("style", "display:none");
 
 	lastResult = "none";
 } // END OF "newGame()"
@@ -273,8 +281,8 @@ const dealHand = () => {
 	toHold = new Set();
 
 	// maintain round count and credit
-	roundDisplay.update("Round " + ++roundCount);
-	creditDisplay.update("Credit: " + --credit);
+	roundDisplay.updateContent("Round " + ++roundCount);
+	creditDisplay.updateContent("Credit: " + --credit);
 	creditDisplay.setFontColor("white");
 
 	// toggle buttons
@@ -304,7 +312,7 @@ const dealHand = () => {
 	for(let i=1; i<=5; i++) {
 		let currentCard = sortedHand[i-1];
 		let currentCardDisplay = cardDisplays[i-1];
-		currentCardDisplay.update(currentCard.toString());
+		currentCardDisplay.updateContent(currentCard.toString());
 
 		if(currentCard.isRed()) {
 			currentCardDisplay.setFontColor("darkred");
@@ -313,7 +321,7 @@ const dealHand = () => {
 
 	// pre-draw outcome of the hand
 	currentResult = currentHand.determineResult();
-	resultDisplay.update(currentResult.toUpperCase());
+	resultDisplay.updateContent(currentResult.toUpperCase());
 	if(currentResult === "none") {
 		resultDisplay.setFontColor("lightcoral");
 	} else { 
@@ -362,7 +370,7 @@ const draw = () => {
 			let currentCardDisplay = cardDisplays[i-1];
 
 			newHand.addCard(currentCard);
-			currentCardDisplay.update(currentCard.toString());
+			currentCardDisplay.updateContent(currentCard.toString());
 		
 			if(currentCard.isRed()) {
 				currentCardDisplay.setFontColor("darkred");
@@ -372,14 +380,14 @@ const draw = () => {
 
 	// post-draw outcome of the hand
 	let newResult = newHand.determineResult();
-	resultDisplay.update(newResult.toUpperCase());
+	resultDisplay.updateContent(newResult.toUpperCase());
 	if(newResult === "none") {
 		resultDisplay.setFontColor("lightcoral");
 	} else { resultDisplay.setFontColor("lightgreen") }
 
 	// update credits
 	credit += payout;
-	creditDisplay.update("Credit: " + credit + " (+" + payout + ")");
+	creditDisplay.updateContent("Credit: " + credit + " (+" + payout + ")");
 	if(payout === 0) {
 		creditDisplay.setFontColor("lightcoral");
 	} else { creditDisplay.setFontColor("lightgreen"); }
@@ -399,7 +407,20 @@ const draw = () => {
 	}
 
 	lastResult = newResult;
+
+	if(credit === 0) {
+		gameOver();
+	}
 } // END OF "draw()"
+
+const gameOver = () => {
+	dealHandButton.disable();
+	newGameButton.enable();
+
+	// display game over message
+	document.querySelector(".payoutBoard").setAttribute("style", "display:none");
+	document.querySelector(".gameOver").setAttribute("style", "display:block");
+}
 
 
 

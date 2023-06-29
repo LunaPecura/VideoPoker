@@ -46,6 +46,18 @@ button {
   border: solid lightseagreen;
 }
 
+.gameOver {
+  display: flex;
+  height: 200px;
+  border: solid lightseagreen;
+  display: none;
+  font-size: 30px;
+  line-height: 200px;
+  text-align: center;
+  color: white;
+  background-color: black;
+}
+
 .payoutCol {
   width: 50%;
   border: solid orange;
