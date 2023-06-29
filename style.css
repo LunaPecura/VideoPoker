@@ -50,14 +50,22 @@ button {
   width: 50%;
   border: solid orange;
   background-color: black;
-  padding-top: 10px;
+  padding-top: 5px;
 }
 
 .payoutElement {
   height: 20px;
   font-size: 11px;
+  line-height: 20px;
   font-family: "Verdana";
   color: greenyellow;
+  /* border: 0.1px solid white; */
+}
+
+.payoutElement.highlighted {
+  background-color: lightgreen;
+  color: black;
+  font-weight: 900;
 }
 
 .payoutElement.left {

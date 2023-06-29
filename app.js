@@ -4,6 +4,13 @@ function getRandomInt(min, max) { // taken from MDN
   return Math.floor(Math.random() * (max - min + 1) + min); 
 }
 
+function stringToCamelCase(str) {
+  let array = str.split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1));
+  array[0] = array[0].toLowerCase();
+  let camelCase = array.reduce((str1, str2) => str1 + str2);
+  return camelCase;
+}
+
 /*---------------------------------------------------------------------------------------*/
 class Card {
   rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
@@ -206,6 +213,7 @@ let roundCount;
 let newHand;
 let toHold;
 let currentResult;
+let lastResult = "none";
 let newResult;
 let credit;
 let payout;
@@ -256,6 +264,14 @@ const dealHand = () => {
   drawButton.enable();
   holdButtons.forEach(button => button.enable());
 
+  // clear payout board
+  if(!(lastResult === "none")) {
+    let divLeft = document.querySelector("#" + stringToCamelCase(lastResult));
+    divLeft.classList.remove("highlighted");
+    let divRight = document.querySelector("#" + stringToCamelCase(lastResult) + "Payout");
+    divRight.classList.remove("highlighted");
+  }
+
   // draw five cards
   for(let i=1; i<=5; i++) {
     currentHand.addCard(currentDeck.draw());
@@ -274,13 +290,22 @@ const dealHand = () => {
       currentCardDisplay.setFontColor("darkred");
     } else {currentCardDisplay.setFontColor("black");}
   }
- 
+
   // pre-draw outcome of the hand
   currentResult = currentHand.determineResult();
   resultDisplay.update(currentResult.toUpperCase());
   if(currentResult === "none") {
     resultDisplay.setFontColor("lightcoral");
-  } else { resultDisplay.setFontColor("lightgreen"); }
+  } else { 
+    resultDisplay.setFontColor("lightgreen"); 
+
+    // update payout board
+    let divLeft = document.querySelector("#" + stringToCamelCase(currentResult));
+    divLeft.classList.add("highlighted");
+    let divRight = document.querySelector("#" + stringToCamelCase(currentResult) + "Payout");
+    divRight.classList.add("highlighted");
+
+  }
 
 } // END OF "DEAL HAND()"
 
@@ -329,5 +354,21 @@ const draw = () => {
   if(payout === 0) {
     creditDisplay.setFontColor("lightcoral");
   } else { creditDisplay.setFontColor("lightgreen"); }
+
+  // update payout board
+  console.log("Update payout board: newResult = " + newResult + "oldResult = " + currentResult);
+  if(!(newResult === currentResult)) {
+    let divLeftOld = document.querySelector("#" + stringToCamelCase(currentResult));
+    divLeftOld.classList.remove("highlighted");
+    let divRightOld = document.querySelector("#" + stringToCamelCase(currentResult) + "Payout");
+    divRightOld.classList.remove("highlighted");
+  }
+  if(!(newResult === "none")) {
+    let divLeftNew = document.querySelector("#" + stringToCamelCase(newResult));
+    divLeftNew.classList.add("highlighted");
+    let divRightNew = document.querySelector("#" + stringToCamelCase(newResult) + "Payout");
+    divRightNew.classList.add("highlighted");
+  }
+  lastResult = newResult;
 }
 
