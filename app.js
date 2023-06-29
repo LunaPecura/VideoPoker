@@ -358,10 +358,13 @@ const draw = () => {
   // update payout board
   console.log("Update payout board: newResult = " + newResult + "oldResult = " + currentResult);
   if(!(newResult === currentResult)) {
-    let divLeftOld = document.querySelector("#" + stringToCamelCase(currentResult));
-    divLeftOld.classList.remove("highlighted");
-    let divRightOld = document.querySelector("#" + stringToCamelCase(currentResult) + "Payout");
-    divRightOld.classList.remove("highlighted");
+    if(!(currentResult === "none")) {
+      let divLeftOld = document.querySelector("#" + stringToCamelCase(currentResult));
+      divLeftOld.classList.remove("highlighted");
+      let divRightOld = document.querySelector("#" + stringToCamelCase(currentResult) + "Payout");
+      divRightOld.classList.remove("highlighted");
+    }
+    
   }
   if(!(newResult === "none")) {
     let divLeftNew = document.querySelector("#" + stringToCamelCase(newResult));
