@@ -183,6 +183,14 @@ class ButtonHandler {
 	disable() {
 		this.handler.setAttribute("disabled", true);
 	}
+
+	addClass(className) {
+		this.handler.classList.add(className);
+	}
+
+	removeClass(className) {
+		this.handler.classList.remove(className);
+	}
 } // END OF CLASS "ButtonHandler"
 /*---------------------------------------------------------------------------------------*/
 class DisplayHandler {
@@ -265,6 +273,7 @@ const dealHand = () => {
 	dealHandButton.disable();
 	drawButton.enable();
 	holdButtons.forEach(button => button.enable());
+	holdButtons.forEach(button => button.removeClass("pressed"))
 
 	// clear payout board
 	if((lastResult !== "none")) {
@@ -312,8 +321,16 @@ const dealHand = () => {
 
 
 const hold = i => {
-	toHold.add(i);
-	holdButtons[i-1].disable();
+
+	if(toHold.has(i)) {
+		toHold.delete(i);
+		holdButtons[i-1].removeClass("pressed");
+	} else {
+		toHold.add(i);
+		holdButtons[i-1].addClass("pressed");
+	}
+
+	
 } // END OF "hold()"
 
 
@@ -371,7 +388,7 @@ const draw = () => {
 	}
 
 	lastResult = newResult;
-}
+} // END OF "draw()"
 
 
 

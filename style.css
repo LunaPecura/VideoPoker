@@ -95,6 +95,15 @@ button {
   border: 2px solid lightgray;
 }
 
+.holdButton.pressed {
+  background-color: lightgreen;
+  color: black;
+}
+
+.holdButton:disabled {
+  color: gray;
+}
+
 .cardArea {
   height: 205px;
   font-size: 75px;
