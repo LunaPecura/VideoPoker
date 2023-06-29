@@ -424,6 +424,13 @@ const gameOver = () => {
 		"GAME OVER<br>You survived " + roundCount + " rounds"
 }
 
+const autoPlay = () => {
+	while(credit > 0) {
+		dealHand();
+		draw();
+	}
+}
+
 
 
 
