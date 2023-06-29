@@ -209,6 +209,14 @@ class DisplayHandler {
 	setFontColor(newColor) {
 		(this.handler).style.color = newColor;
 	}
+
+	addClass(className) {
+		this.handler.classList.add(className);
+	}
+
+	removeClass(className) {
+		this.handler.classList.remove(className);
+	}
 } // END OF CLASS "DisplayHandler"
 /*---------------------------------------------------------------------------------------*/
 
@@ -274,6 +282,7 @@ const dealHand = () => {
 	drawButton.enable();
 	holdButtons.forEach(button => button.enable());
 	holdButtons.forEach(button => button.removeClass("pressed"))
+	cardDisplays.forEach(display => display.removeClass("onHold"))
 
 	// clear payout board
 	if((lastResult !== "none")) {
@@ -325,9 +334,11 @@ const hold = i => {
 	if(toHold.has(i)) {
 		toHold.delete(i);
 		holdButtons[i-1].removeClass("pressed");
+		cardDisplays[i-1].removeClass("onHold");
 	} else {
 		toHold.add(i);
 		holdButtons[i-1].addClass("pressed");
+		cardDisplays[i-1].addClass("onHold")
 	}
 
 	

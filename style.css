@@ -81,12 +81,12 @@ button {
 .cardPanel {
   display: flex;
   height: 250px;
-  border: solid greenyellow;
+  border: solid purple;
 }
 
 .cardDiv {
   width: 20%;
-  border: solid turquoise;
+  border: solid darkslategray;
 }
 
 .holdButton {
@@ -98,6 +98,7 @@ button {
 .holdButton.pressed {
   background-color: lightgreen;
   color: black;
+  border-color: darkslategray;
 }
 
 .holdButton:disabled {
@@ -112,6 +113,10 @@ button {
   text-align: center;
   color: black;
   border: 2px solid lightgray;
+}
+
+.cardArea.onHold {
+  border-color: darkslategray;
 }
 
 .verticalBar.bottom {
