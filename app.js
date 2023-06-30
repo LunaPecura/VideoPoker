@@ -233,6 +233,8 @@ let lastResult;
 let newResult;
 let credit;
 let payout;
+let results;
+let payouts;
 
 // QUERY SELECTORS
 const resultDisplay = new DisplayHandler(".display.result");
@@ -430,29 +432,34 @@ const gameOver = () => {
 	document.querySelector(".gameOver").setAttribute("style", "display:block");
 	document.querySelector(".gameOver").innerHTML = 
 		"GAME OVER<br>You survived " + roundCount + " rounds"
+
+	console.log(results);
+	console.log(payouts);
 }
 
 const autoRound = () => {
 	deal();
-	//setTimeout(() => { deal(); }, 500);
 	setTimeout(() => { draw(); }, 500);
 }
 
 const autoGame = () => {
+	autoGameButton.disable();
 	newGame();
-	let results = [];
-	let payouts = [];
-	while(credit > 0) {
-		deal();
-		draw();
-		results.push(lastResult);
-		payouts.push(payout);
+	results = [];
+	payouts = [];
+	
+	for(let i=1; i<1000; i++) {
+		setTimeout(() => {
+			if(credit !== 0) {
+				autoRound();
+				console.log("Round " + roundCount + ": " + lastResult);
+				results.push(lastResult);
+				payouts.push(payout);
+			} else {
+				return;
+			}
+		}, 1000 * i);
 	}
-	//results.forEach(result => console.log(result))
-	//console.log(results);
-	console.log(payouts);
-	autoGameButton.enable();
-	//gameOver();
 }
 
 
