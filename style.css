@@ -43,27 +43,52 @@
   border: solid orchid;
 }
 
-.payoutBoard {
+.infoBoard {
   display: flex;
-  height: 200px;
+  height: 205px;
+  width: 99.5%; 
   border: solid lightseagreen;
 }
 
-.gameOver {
+.payoutBoard {
   display: flex;
   height: 200px;
-  border: solid lightseagreen;
+  border: solid orange;
+  width: 66%;
+}
+
+.displayLog {
+  width: 33%;
+  height: 190px;
+  border: solid goldenrod;
+  background-color: black;
+  color: white;
+  font-family: "Courier New";
+  font-size: 11px;
+  line-height: 12px;
+  padding: 5px;
+  overflow-y: auto;
+}
+
+.welcome {
+  display: none;
+}
+
+.gameOver {
+  height: 200px;
+  width: 66%;
+  border: solid lightcoral;
   display: none;
   font-size: 30px;
-  line-height: 90px;
+  line-height: 60px;
   text-align: center;
-  color: white;
+  color: lightcoral;
   background-color: black;
 }
 
 .payoutCol {
   width: 50%;
-  border: solid orange;
+  border: solid black;
   background-color: black;
   padding-top: 5px;
 }

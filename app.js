@@ -1,4 +1,3 @@
-
 /* HELPER FUNCTIONS----------------------------------------------------------------------*/
 function getRandomInt(min, max) { // taken from MDN
 	min = Math.ceil(min);
@@ -12,6 +11,8 @@ function stringToCamelCase(str) {
 	let camelCase = array.reduce((str1, str2) => str1 + str2);
 	return camelCase;
 }
+
+
 /*---------------------------------------------------------------------------------------*/
 class Card {
 	rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
@@ -145,7 +146,7 @@ class Hand {
 		return result;
 
 	} // END OF METHOD 'DETERMINE RESULT'
-} // END OF CLASS 'Hand'
+} // END OF CLASS "Hand"
 /*---------------------------------------------------------------------------------------*/
 class Deck {
 	cards = [];
@@ -241,6 +242,7 @@ const resultDisplay = new DisplayHandler(".display.result");
 const roundDisplay = new DisplayHandler(".display.round");
 const creditDisplay = new DisplayHandler(".display.credit");
 const cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
+const gameOverDisplay = new DisplayHandler(".gameOver")
 /* ------------------------------------------------------- */
 const newGameButton = new ButtonHandler(".actionButton.newGame");
 const dealButton = new ButtonHandler(".actionButton.deal");
@@ -270,9 +272,10 @@ const newGame = () => {
 	cardDisplays.forEach(display => display.removeClass("onHold"));
 	holdButtons.forEach(button => button.removeClass("pressed"));
 
-	// remove game over message
+	// clear screen
 	document.querySelector(".payoutBoard").setAttribute("style", "display:flex");
 	document.querySelector(".gameOver").setAttribute("style", "display:none");
+	document.querySelector(".displayLog").innerHTML = "";
 
 	lastResult = "none";
 } // END OF "newGame()"
@@ -414,6 +417,9 @@ const draw = () => {
 		divRightNew.classList.add("highlighted");
 	}
 
+	document.querySelector(".displayLog").innerHTML += 
+		"Round " + roundCount + ": " + newResult + "<br>";
+
 	lastResult = newResult;
 
 	if(credit === 0 && payout === 0) {
@@ -430,8 +436,9 @@ const gameOver = () => {
 	// display game over message
 	document.querySelector(".payoutBoard").setAttribute("style", "display:none");
 	document.querySelector(".gameOver").setAttribute("style", "display:block");
-	document.querySelector(".gameOver").innerHTML = 
-		"GAME OVER<br>You survived " + roundCount + " rounds"
+	gameOverDisplay.updateContent( 
+		"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
+		"<br>Remember: The house always wins...");
 
 	setTimeout(() => {
 		console.log(results);
