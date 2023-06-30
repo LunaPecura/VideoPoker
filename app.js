@@ -433,13 +433,17 @@ const gameOver = () => {
 	document.querySelector(".gameOver").innerHTML = 
 		"GAME OVER<br>You survived " + roundCount + " rounds"
 
-	console.log(results);
-	console.log(payouts);
+	setTimeout(() => {
+		console.log(results);
+		console.log(payouts);
+	}, 1000);
+	
 }
 
 const autoRound = () => {
 	deal();
-	setTimeout(() => { draw(); }, 500);
+	//setTimeout(() => { draw(); }, 500);
+	draw();
 }
 
 const autoGame = () => {
@@ -448,18 +452,24 @@ const autoGame = () => {
 	results = [];
 	payouts = [];
 	
-	for(let i=1; i<1000; i++) {
-		setTimeout(() => {
+	//for(let i=1; i<=50; i++) {
+		let myId = setInterval(() => {
 			if(credit !== 0) {
 				autoRound();
 				console.log("Round " + roundCount + ": " + lastResult);
 				results.push(lastResult);
 				payouts.push(payout);
 			} else {
-				return;
+				console.log("game over");
+				clearInterval(myId);
+				//i=1000;
+				//return;
+				/* setTimeout(() => {
+					return;
+				}, 1000*(i+2)); */
 			}
-		}, 1000 * i);
-	}
+		}, 1000 );
+//	}
 }
 
 
