@@ -240,10 +240,12 @@ const roundDisplay = new DisplayHandler(".display.round");
 const creditDisplay = new DisplayHandler(".display.credit");
 const cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
 /* ------------------------------------------------------- */
-const newGameButton = new ButtonHandler(".newGameButton");
-const dealHandButton = new ButtonHandler(".dealHandButton");
-const drawButton = new ButtonHandler(".drawButton");
+const newGameButton = new ButtonHandler(".actionButton.newGame");
+const dealButton = new ButtonHandler(".actionButton.deal");
+const drawButton = new ButtonHandler(".actionButton.draw");
 const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
+const autoRoundButton = new ButtonHandler(".actionButton.autoRound");
+const autoGameButton = new ButtonHandler(".actionButton.autoGame");
 
 
 const newGame = () => {
@@ -258,7 +260,9 @@ const newGame = () => {
 
 	// toggle buttons
 	newGameButton.disable();
-	dealHandButton.enable();
+	autoGameButton.disable();
+	autoRoundButton.enable();
+	dealButton.enable();
 
 	cardDisplays.forEach(display => display.updateContent(" "));
 	cardDisplays.forEach(display => display.removeClass("onHold"));
@@ -273,7 +277,7 @@ const newGame = () => {
 
 
 
-const dealHand = () => {
+const deal = () => {
 
 	// initialize global variables
 	currentDeck = new Deck();
@@ -286,8 +290,9 @@ const dealHand = () => {
 	creditDisplay.setFontColor("white");
 
 	// toggle buttons
-	dealHandButton.disable();
+	dealButton.disable();
 	drawButton.enable();
+	autoRoundButton.disable();
 	holdButtons.forEach(button => button.enable());
 	holdButtons.forEach(button => button.removeClass("pressed"))
 	cardDisplays.forEach(display => display.removeClass("onHold"))
@@ -333,7 +338,7 @@ const dealHand = () => {
 
 		resultDisplay.setFontColor("lightgreen"); 
 	}
-} // END OF "dealHand()"
+} // END OF "deal()"
 
 
 
@@ -358,8 +363,9 @@ const draw = () => {
 
 	// toggle buttons
 	drawButton.disable();
-	dealHandButton.enable();
+	dealButton.enable();
 	holdButtons.forEach(button => button.disable())
+	autoRoundButton.enable();
 
 	// create & display new hand
 	for(i=1; i<=5; i++) {
@@ -414,8 +420,10 @@ const draw = () => {
 } // END OF "draw()"
 
 const gameOver = () => {
-	dealHandButton.disable();
+	dealButton.disable();
 	newGameButton.enable();
+	autoRoundButton.disable();
+	autoGameButton.enable();
 
 	// display game over message
 	document.querySelector(".payoutBoard").setAttribute("style", "display:none");
@@ -424,11 +432,27 @@ const gameOver = () => {
 		"GAME OVER<br>You survived " + roundCount + " rounds"
 }
 
-const autoPlay = () => {
+const autoRound = () => {
+	deal();
+	//setTimeout(() => { deal(); }, 500);
+	setTimeout(() => { draw(); }, 500);
+}
+
+const autoGame = () => {
+	newGame();
+	let results = [];
+	let payouts = [];
 	while(credit > 0) {
-		dealHand();
+		deal();
 		draw();
+		results.push(lastResult);
+		payouts.push(payout);
 	}
+	//results.forEach(result => console.log(result))
+	//console.log(results);
+	console.log(payouts);
+	autoGameButton.enable();
+	//gameOver();
 }
 
 

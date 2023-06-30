@@ -148,6 +148,12 @@ button {
   margin: 5px;
 }
 
+.actionButton {
+  padding: 5px;
+  width: 100px;
+  margin: 5px;
+}
+
 .display.result {
   width: 250px;
   border: solid turquoise;

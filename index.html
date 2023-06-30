@@ -17,11 +17,16 @@
 
       <!--top bar FLEX-->
       <div class="verticalBar top">
+
         <div class="buttonPanel">
-          <button class="autoPlay" onclick="autoPlay()">Auto-Play</button>
+          <button class="actionButton autoRound" disabled onclick="autoRound()">
+            Auto-Round</button>
+          <button class="actionButton autoGame" onclick="autoGame()">
+            Auto-Game</button>
         </div>
+
         <div class="display credit">CREDIT</div>
-      </div>
+      </div> <!--end of top bar-->
 
       <div class="gameOver"></div>
 
@@ -96,9 +101,9 @@
       <!--bottom bar-->
       <div class="verticalBar bottom">
         <div class="buttonPanel">
-          <button class="newGameButton" onclick="newGame()">New Game</button>
-          <button class="dealHandButton" disabled onclick="dealHand()">Deal Hand</button>
-          <button class="drawButton" disabled onclick="draw()">Draw</button>
+          <button class="actionButton newGame" onclick="newGame()">New Game</button>
+          <button class="actionButton deal" disabled onclick="deal()">Deal</button>
+          <button class="actionButton draw" disabled onclick="draw()">Draw</button>
         </div>
         <div class="display result">RESULT</div>
         <div class="display round"></div>
