@@ -1,18 +1,22 @@
 /* HELPER FUNCTIONS----------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------------*/
 function getRandomInt(min, max) { // taken from MDN
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min + 1) + min); 
-}
-
+} // END OF HELPER FUNCTION "getRandomInt()"
+/*---------------------------------------------------------------------------------------*/
 function stringToCamelCase(str) {
 	let array = str.split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1));
 	array[0] = array[0].toLowerCase();
 	let camelCase = array.reduce((str1, str2) => str1 + str2);
 	return camelCase;
-}
+} // END OF HELPER FUNCTION "stringToCamelCase()"
+/*---------------------------------------------------------------------------------------*/
 
 
+
+/* CLASSES-------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
 class Card {
 	rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
@@ -222,6 +226,9 @@ class DisplayHandler {
 /*---------------------------------------------------------------------------------------*/
 
 
+/* MAIN GAME-----------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------------*/
+
 // GLOBAL VARIABLES
 let currentDeck;
 let currentHand;
@@ -237,13 +244,14 @@ let payout;
 let results;
 let payouts;
 
-// QUERY SELECTORS
+// DISPLAY HANDLERS
 const resultDisplay = new DisplayHandler(".display.result");
 const roundDisplay = new DisplayHandler(".display.round");
 const creditDisplay = new DisplayHandler(".display.credit");
 const cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
 const gameOverDisplay = new DisplayHandler(".gameOver")
-/* ------------------------------------------------------- */
+
+// BUTTON HANDLERS
 const newGameButton = new ButtonHandler(".actionButton.newGame");
 const dealButton = new ButtonHandler(".actionButton.deal");
 const drawButton = new ButtonHandler(".actionButton.draw");
@@ -251,7 +259,7 @@ const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
 const autoRoundButton = new ButtonHandler(".actionButton.autoRound");
 const autoGameButton = new ButtonHandler(".actionButton.autoGame");
 
-
+/*---------------------------------------------------------------------------------------*/
 const newGame = () => {
 	
 	// establish round count & credit
@@ -279,9 +287,7 @@ const newGame = () => {
 
 	lastResult = "none";
 } // END OF "newGame()"
-
-
-
+/*---------------------------------------------------------------------------------------*/
 const deal = () => {
 
 	// initialize global variables
@@ -344,9 +350,7 @@ const deal = () => {
 		resultDisplay.setFontColor("lightgreen"); 
 	}
 } // END OF "deal()"
-
-
-
+/*---------------------------------------------------------------------------------------*/
 const hold = i => {
 
 	if(toHold.has(i)) {
@@ -361,8 +365,7 @@ const hold = i => {
 
 	
 } // END OF "hold()"
-
-
+/*---------------------------------------------------------------------------------------*/
 const draw = () => {
 	newHand = new Hand();
 
@@ -417,8 +420,11 @@ const draw = () => {
 		divRightNew.classList.add("highlighted");
 	}
 
+	// update log
 	document.querySelector(".displayLog").innerHTML += 
 		"Round " + roundCount + ": " + newResult + "<br>";
+	document.querySelector(".displayLog").scrollTop = 
+		document.querySelector(".displayLog").scrollHeight;
 
 	lastResult = newResult;
 
@@ -426,7 +432,7 @@ const draw = () => {
 		gameOver();
 	}
 } // END OF "draw()"
-
+/*---------------------------------------------------------------------------------------*/
 const gameOver = () => {
 	dealButton.disable();
 	newGameButton.enable();
@@ -444,40 +450,29 @@ const gameOver = () => {
 		console.log(results);
 		console.log(payouts);
 	}, 1000);
-	
-}
-
+} // END OF "gameOver()"
+/*---------------------------------------------------------------------------------------*/
 const autoRound = () => {
 	deal();
-	//setTimeout(() => { draw(); }, 500);
 	draw();
-}
-
+} // END OF "autoRound()"
+/*---------------------------------------------------------------------------------------*/
 const autoGame = () => {
 	autoGameButton.disable();
 	newGame();
 	results = [];
 	payouts = [];
 	
-	//for(let i=1; i<=50; i++) {
-		let myId = setInterval(() => {
-			if(credit !== 0) {
-				autoRound();
-				console.log("Round " + roundCount + ": " + lastResult);
-				results.push(lastResult);
-				payouts.push(payout);
-			} else {
-				console.log("game over");
-				clearInterval(myId);
-				//i=1000;
-				//return;
-				/* setTimeout(() => {
-					return;
-				}, 1000*(i+2)); */
-			}
-		}, 1000 );
-//	}
-}
+	let myId = setInterval(() => {
+		if(credit !== 0) {
+			autoRound();
+			results.push(lastResult);
+			payouts.push(payout);
+		} else { clearInterval(myId); }
+	}, 1000 );
+} // END OF "autoGame()"
+/*---------------------------------------------------------------------------------------*/
+
 
 
 
