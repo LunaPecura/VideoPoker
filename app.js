@@ -211,6 +211,10 @@ class DisplayHandler {
 		this.handler.innerHTML = content;
 	}
 
+	addContent(content) {
+		this.handler.innerHTML += content;
+	}
+
 	setFontColor(newColor) {
 		(this.handler).style.color = newColor;
 	}
@@ -224,7 +228,125 @@ class DisplayHandler {
 	}
 } // END OF CLASS "DisplayHandler"
 /*---------------------------------------------------------------------------------------*/
+class Screen {
 
+	// DISPLAY HANDLERS
+	resultDisplay = new DisplayHandler(".display.result");
+	roundDisplay = new DisplayHandler(".display.round");
+	creditDisplay = new DisplayHandler(".display.credit");
+	cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
+	gameOverDisplay = new DisplayHandler(".gameOver");
+	logDisplay = new DisplayHandler(".displayLog");
+
+
+	// BUTTON HANDLERS
+	newGameButton = new ButtonHandler(".actionButton.newGame");
+	dealButton = new ButtonHandler(".actionButton.deal");
+	drawButton = new ButtonHandler(".actionButton.draw");
+	holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
+	autoRoundButton = new ButtonHandler(".actionButton.autoRound");
+	autoGameButton = new ButtonHandler(".actionButton.autoGame");
+
+	updateRound(n) {
+		this.roundDisplay.updateContent("Round " + n.toString());
+		this.roundDisplay.setFontColor("white");
+	}
+
+	setCredit(newCredit) {
+		this.creditDisplay.updateContent("Credit: " + newCredit.toString());
+		this.creditDisplay.setFontColor("white");
+	}
+
+	updateCredit(oldCredit, newCredit) {
+		this.creditDisplay.updateContent("Credit: " + newCredit.toString() + 
+			"   (+" + (newCredit-oldCredit).toString() + ")");
+		if(newCredit === oldCredit) {
+			this.creditDisplay.setFontColor("lightcoral");
+		} else { this.creditDisplay.setFontColor("lightgreen"); }
+	}
+
+	updateResult(newResult) {
+		this.resultDisplay.updateContent(newResult.toUpperCase());
+		if(newResult === "none") {
+			this.resultDisplay.setFontColor("lightcoral");
+		} else { 
+			this.resultDisplay.setFontColor("lightgreen"); 
+		}
+	}
+
+	updateCardContent(i, newContent) { // i in {1,...,5}
+		this.cardDisplays[i-1].updateContent(newContent);
+	}
+
+	holdCard(i) {
+		this.cardDisplays[i-1].addClass("onHold");
+	}
+
+	unholdCard(i) {
+		this.cardDisplays[i-1].removeClass("onHold");
+	}
+
+	enableHoldButton(i) {
+		this.holdButtons[i-1].enable();
+	}
+
+	disableHoldButton(i) {
+		this.holdButtons[i-1].disable();
+	}
+
+	pressHoldButton(i) {
+		this.holdButtons[i-1].addClass("pressed");
+	}
+
+	unpressHoldButton(i) {
+		this.holdButtons[i-1].removeClass("pressed");
+	}
+
+	showPayoutBoard() {
+		document.querySelector(".payoutBoard").setAttribute("style", "display:flex");
+	}
+
+	hidePayoutBoard() {
+		document.querySelector(".payoutBoard").setAttribute("style", "display:none");
+	}
+
+	showGameOverBoard() {
+		document.querySelector(".gameOver").setAttribute("style", "display:block");
+	}
+
+	hideGameOverBoard() {
+		document.querySelector(".gameOver").setAttribute("style", "display:none");
+	}
+
+	clearLog() {
+		document.querySelector(".displayLog").innerHTML = "";
+	}
+
+	clearPayoutBoard() {
+		document.querySelectorAll(".payoutElement.highlighted")
+				.forEach(element => element.classList.remove("highlighted"));
+	}
+
+	updatePayoutBoard(newResult) {
+		if(newResult !== "none") {
+			let divLeft = document.querySelector("#" + stringToCamelCase(newResult));
+			divLeft.classList.add("highlighted");
+			let divRight = document.querySelector("#" + stringToCamelCase(newResult) + "Payout");
+			divRight.classList.add("highlighted");
+		}
+	}
+
+	displayCard(i, card) {
+		this.updateCardContent(i, card.toString());
+		let fontColor = card.isRed() ? "darkred" : "black";
+		this.cardDisplays[i-1].setFontColor(fontColor);
+	}
+
+	updateLog(result) {
+		this.logDisplay.addContent("Round " + roundCount + ": " + result + "<br>");
+		this.logDisplay.handler.scrollTop = this.logDisplay.handler.scrollHeight;
+	}
+}
 
 /* MAIN GAME-----------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
@@ -243,47 +365,35 @@ let credit;
 let payout;
 let results;
 let payouts;
+let screen;
 
-// DISPLAY HANDLERS
-const resultDisplay = new DisplayHandler(".display.result");
-const roundDisplay = new DisplayHandler(".display.round");
-const creditDisplay = new DisplayHandler(".display.credit");
-const cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
-const gameOverDisplay = new DisplayHandler(".gameOver")
-
-// BUTTON HANDLERS
-const newGameButton = new ButtonHandler(".actionButton.newGame");
-const dealButton = new ButtonHandler(".actionButton.deal");
-const drawButton = new ButtonHandler(".actionButton.draw");
-const holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
-const autoRoundButton = new ButtonHandler(".actionButton.autoRound");
-const autoGameButton = new ButtonHandler(".actionButton.autoGame");
 
 /*---------------------------------------------------------------------------------------*/
 const newGame = () => {
-	
+
+	screen = new Screen();
+
 	// establish round count & credit
 	roundCount = 0;
 	credit = 10;
-	roundDisplay.updateContent("Round");
-	roundDisplay.setFontColor("white");
-	creditDisplay.updateContent("Credit: " + credit);
-	creditDisplay.setFontColor("white");
+	screen.updateRound(roundCount);
+	screen.setCredit(credit);
 
 	// toggle buttons
-	newGameButton.disable();
-	autoGameButton.disable();
-	autoRoundButton.enable();
-	dealButton.enable();
+	screen.newGameButton.disable();
+	screen.autoGameButton.disable();
+	screen.autoRoundButton.enable();
+	screen.dealButton.enable();
 
-	cardDisplays.forEach(display => display.updateContent(" "));
-	cardDisplays.forEach(display => display.removeClass("onHold"));
-	holdButtons.forEach(button => button.removeClass("pressed"));
+	// reset card panel
+	[1,2,3,4,5].forEach(i => screen.updateCardContent(i, " "));
+	[1,2,3,4,5].forEach(i => screen.unholdCard(i));
+	[1,2,3,4,5].forEach(i => screen.unpressHoldButton(i));
 
 	// clear screen
-	document.querySelector(".payoutBoard").setAttribute("style", "display:flex");
-	document.querySelector(".gameOver").setAttribute("style", "display:none");
-	document.querySelector(".displayLog").innerHTML = "";
+	screen.showPayoutBoard();
+	screen.hideGameOverBoard();
+	screen.clearLog();
 
 	lastResult = "none";
 } // END OF "newGame()"
@@ -296,84 +406,58 @@ const deal = () => {
 	toHold = new Set();
 
 	// maintain round count and credit
-	roundDisplay.updateContent("Round " + ++roundCount);
-	creditDisplay.updateContent("Credit: " + --credit);
-	creditDisplay.setFontColor("white");
+	screen.updateRound(++roundCount)/
+	screen.setCredit(--credit);
 
 	// toggle buttons
-	dealButton.disable();
-	drawButton.enable();
-	autoRoundButton.disable();
-	holdButtons.forEach(button => button.enable());
-	holdButtons.forEach(button => button.removeClass("pressed"))
-	cardDisplays.forEach(display => display.removeClass("onHold"))
+	screen.dealButton.disable();
+	screen.drawButton.enable();
+	screen.autoRoundButton.disable();
+	[1,2,3,4,5].forEach(i => screen.enableHoldButton(i));
+	[1,2,3,4,5].forEach(i => screen.unpressHoldButton(i));
+	[1,2,3,4,5].forEach(i => screen.unholdCard(i));
 
 	// clear payout board
-	if((lastResult !== "none")) {
-		let divLeft = document.querySelector("#" + stringToCamelCase(lastResult));
-		divLeft.classList.remove("highlighted");
-		let divRight = document.querySelector("#" + stringToCamelCase(lastResult) + "Payout");
-		divRight.classList.remove("highlighted");
-	}
+	screen.clearPayoutBoard();
 
 	// draw five cards
-	for(let i=1; i<=5; i++) {
-		currentHand.addCard(currentDeck.draw());
-	}
+	[1,2,3,4,5].forEach(i => currentHand.addCard(currentDeck.draw()));
 
 	// show cards in ascending order
 	sortedHand = currentHand.sortByRank();
 
 	// display each card
-	for(let i=1; i<=5; i++) {
-		let currentCard = sortedHand[i-1];
-		let currentCardDisplay = cardDisplays[i-1];
-		currentCardDisplay.updateContent(currentCard.toString());
-
-		if(currentCard.isRed()) {
-			currentCardDisplay.setFontColor("darkred");
-		} else {currentCardDisplay.setFontColor("black");}
-	}
+	[1,2,3,4,5].forEach(i => screen.displayCard(i, sortedHand[i-1]));
 
 	// pre-draw outcome of the hand
 	currentResult = currentHand.determineResult();
-	resultDisplay.updateContent(currentResult.toUpperCase());
-	if(currentResult === "none") {
-		resultDisplay.setFontColor("lightcoral");
-	} else { 
-		// update payout board
-		let divLeft = document.querySelector("#" + stringToCamelCase(currentResult));
-		divLeft.classList.add("highlighted");
-		let divRight = document.querySelector("#" + stringToCamelCase(currentResult) + "Payout");
-		divRight.classList.add("highlighted");
+	screen.updateResult(currentResult);
+	screen.updatePayoutBoard(currentResult);
 
-		resultDisplay.setFontColor("lightgreen"); 
-	}
 } // END OF "deal()"
 /*---------------------------------------------------------------------------------------*/
 const hold = i => {
 
 	if(toHold.has(i)) {
 		toHold.delete(i);
-		holdButtons[i-1].removeClass("pressed");
-		cardDisplays[i-1].removeClass("onHold");
+		screen.unpressHoldButton(i);
+		screen.unholdCard(i);
 	} else {
 		toHold.add(i);
-		holdButtons[i-1].addClass("pressed");
-		cardDisplays[i-1].addClass("onHold")
+		screen.pressHoldButton(i);
+		screen.holdCard(i);
 	}
 
-	
 } // END OF "hold()"
 /*---------------------------------------------------------------------------------------*/
 const draw = () => {
 	newHand = new Hand();
 
 	// toggle buttons
-	drawButton.disable();
-	dealButton.enable();
-	holdButtons.forEach(button => button.disable())
-	autoRoundButton.enable();
+	screen.drawButton.disable();
+	screen.dealButton.enable();
+	screen.autoRoundButton.enable();
+	[1,2,3,4,5].forEach(i => screen.disableHoldButton(i));
 
 	// create & display new hand
 	for(i=1; i<=5; i++) {
@@ -381,50 +465,27 @@ const draw = () => {
 			newHand.addCard(sortedHand[i-1]);
 		} else { 
 			let currentCard = currentDeck.draw();
-			let currentCardDisplay = cardDisplays[i-1];
-
+			screen.displayCard(i, currentCard);
 			newHand.addCard(currentCard);
-			currentCardDisplay.updateContent(currentCard.toString());
-		
-			if(currentCard.isRed()) {
-				currentCardDisplay.setFontColor("darkred");
-			} else {currentCardDisplay.setFontColor("black")};
 		}
 	}
 
 	// post-draw outcome of the hand
 	let newResult = newHand.determineResult();
-	resultDisplay.updateContent(newResult.toUpperCase());
-	if(newResult === "none") {
-		resultDisplay.setFontColor("lightcoral");
-	} else { resultDisplay.setFontColor("lightgreen") }
-
+	screen.updateResult(newResult);
+	
 	// update credits
+	let oldCredit = credit;
 	credit += payout;
-	creditDisplay.updateContent("Credit: " + credit + " (+" + payout + ")");
-	if(payout === 0) {
-		creditDisplay.setFontColor("lightcoral");
-	} else { creditDisplay.setFontColor("lightgreen"); }
-
+	let newCredit = credit;
+	screen.updateCredit(oldCredit, newCredit);
+	
 	// update payout board
-	if(newResult !== currentResult && currentResult !== "none") {
-		let divLeftOld = document.querySelector("#" + stringToCamelCase(currentResult));
-		divLeftOld.classList.remove("highlighted");
-		let divRightOld = document.querySelector("#" + stringToCamelCase(currentResult) + "Payout");
-		divRightOld.classList.remove("highlighted");
-	}
-	if(newResult !== "none") {
-		let divLeftNew = document.querySelector("#" + stringToCamelCase(newResult));
-		divLeftNew.classList.add("highlighted");
-		let divRightNew = document.querySelector("#" + stringToCamelCase(newResult) + "Payout");
-		divRightNew.classList.add("highlighted");
-	}
+	screen.clearPayoutBoard();
+	screen.updatePayoutBoard(newResult);
 
 	// update log
-	document.querySelector(".displayLog").innerHTML += 
-		"Round " + roundCount + ": " + newResult + "<br>";
-	document.querySelector(".displayLog").scrollTop = 
-		document.querySelector(".displayLog").scrollHeight;
+	screen.updateLog(newResult);
 
 	lastResult = newResult;
 
@@ -434,22 +495,20 @@ const draw = () => {
 } // END OF "draw()"
 /*---------------------------------------------------------------------------------------*/
 const gameOver = () => {
-	dealButton.disable();
-	newGameButton.enable();
-	autoRoundButton.disable();
-	autoGameButton.enable();
+	
+	// toggle buttons
+	screen.dealButton.disable();
+	screen.newGameButton.enable();
+	screen.autoRoundButton.disable();
+	screen.autoGameButton.enable();
 
-	// display game over message
-	document.querySelector(".payoutBoard").setAttribute("style", "display:none");
-	document.querySelector(".gameOver").setAttribute("style", "display:block");
-	gameOverDisplay.updateContent( 
+	// update info board
+	screen.hidePayoutBoard();
+	screen.showGameOverBoard();
+	screen.gameOverDisplay.updateContent( 
 		"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
 		"<br>Remember: The house always wins...");
 
-	setTimeout(() => {
-		console.log(results);
-		console.log(payouts);
-	}, 1000);
 } // END OF "gameOver()"
 /*---------------------------------------------------------------------------------------*/
 const autoRound = () => {
@@ -458,7 +517,6 @@ const autoRound = () => {
 } // END OF "autoRound()"
 /*---------------------------------------------------------------------------------------*/
 const autoGame = () => {
-	autoGameButton.disable();
 	newGame();
 	results = [];
 	payouts = [];
