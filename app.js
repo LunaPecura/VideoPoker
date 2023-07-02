@@ -15,6 +15,8 @@ function stringToCamelCase(str) {
 /*---------------------------------------------------------------------------------------*/
 
 
+/*
+
 
 /* CLASSES-------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
@@ -27,124 +29,127 @@ class Card {
 		this.suit = suit;
 	}
 
-	isRed() {
-		return (this.suit === 2 || this.suit === 3);
-	}
+	// METHODS
+	isRed() { return (this.suit === 2 || this.suit === 3); }
 
 	toString() {
-		let newString = "";
-
+		let newString = (this.rank <= 10) ? this.rank.toString() : "";
 		switch(this.rank) {
-			case 2: newString += "2"; break;
-			case 3: newString += "3"; break;
-			case 4: newString += "4"; break;
-			case 5: newString += "5"; break;
-			case 6: newString += "6"; break;
-			case 7: newString += "7"; break;
-			case 8: newString += "8"; break;
-			case 9: newString += "9"; break;
-			case 10: newString += "10"; break;
 			case 11: newString += "J"; break;
 			case 12: newString += "Q"; break;
 			case 13: newString += "K"; break;
 			case 14: newString += "A"; break;
-			default: newString += "Error"; break;
+			default: newString += ""; break;
 		}
-
 		switch(this.suit) {
 			case 1: newString += "&clubsuit;"; break;
 			case 2: newString += "&diamondsuit;"; break;
 			case 3: newString += "&heartsuit;"; break;
 			case 4: newString += "&spadesuit;"; break;
-			default: newString += "Error"; break;
+			default: newString += ""; break;
 		}
-
 		return newString;
+	}
 
-	} // END OF METHOD "TOSTRING()"
 } // END OF CLASS "Card"
 /*---------------------------------------------------------------------------------------*/
 class Hand {
-	cards = [];
+	cards; // array of 5 cards
+	ranks;	// array of corresponding ranks, r e {2,...,14}
+	suits;	// array of corresponding suits, s e {1,...,4}
 
-	addCard(card) {
-		this.cards.push(card);
+	constructor(cardArray) {
+		this.cards = [...cardArray];
+		this.ranks = this.cards.map(card => card.rank);
+		this.suits = this.cards.map(card => card.suit);
 	}
 
-	sortByRank() { // does not mutate original array 'cards'
-		let sortedCards = [...this.cards];
-		sortedCards.sort((card1, card2) => card1.rank - card2.rank);
-		return sortedCards;
+	addCard(newCard) {
+		this.cards.push(newCard);
+		this.ranks.push(newCard.rank);
+		this.suits.push(newCard.suit);
 	}
 
-	makeDiffArray() {
-		let sortedCards = this.sortByRank();
-		let diffArray = [];
-		for(let i=0; i<4; i++) {
-			diffArray.push(sortedCards[i+1].rank - sortedCards[i].rank);
-		}
-		return diffArray;
+	/*** returns the i-th card / rank / suit of the hand, i e {1,...,5} */
+	getCard(i) { return this.cards[i-1]; } 
+	getRank(i) { return this.ranks[i-1]; }
+	getSuit(i) { return this.suits[i-1]; }
+
+	/*** returns a copy of the array of cards / ranks / suits associated with the hand */
+	getCardArray() { return [...this.cards]; } 
+	getRankArray() { return [...this.ranks]; } 
+	getSuitArray() { return [...this.suits]; } 
+
+	/*** returns a new hand with the cards sorted according to their rank */
+	sortByRank() { 
+		let cardArrayCopy = this.getCardArray(); // don't mutate original 'cards' array!
+		let sortedCardArray = cardArrayCopy.sort((card1,card2) => card1.rank-card2.rank);
+		return new Hand(sortedCardArray);
+	} 
+
+	/*** helper function for determining result */
+	/*** returns the array of "steps" through the sorted rank array */
+	deltaArray() {
+		let sortedRanks = this.sortByRank().getRankArray();
+		let deltaArray = [];
+		[1,2,3,4].forEach(i =>
+			deltaArray.push(sortedRanks[i] - sortedRanks[i-1]));
+		return deltaArray;
 	}
 
+	/*** helper function for determining result */
 	containsFlush() {
-		let suits = this.cards.map((card) => card.suit);
-		let result = suits.map(suit => suit === suits[0]).reduce((p,q) => p && q);
-		return result;
+		return this.suits.map(suit => suit === this.suits[0]).
+							reduce((p,q) => p && q);
 	}
 
-	determineResult() {
-		let sortedCards = this.sortByRank();
-		let diffArray = this.makeDiffArray();
+	determineResult() { 
+		let sortedCards = this.sortByRank().cards;
+		let deltas = this.deltaArray();
 		let result = "none";
-		payout = 0; // global
+		payout = 0; // global => FIX!
 
-		const numberOfOnes = diffArray.filter((element) => element === 1).length;
-		const numberOfZeros = diffArray.filter((element) => element === 0).length;
+		// The number of 1s in the delta array indicates straights and straight draws
+		const numberOfOnes = deltas.filter((element) => element === 1).length;
+		// The number of 0s in the delta array indicates multiplicity (pairs, triples etc)
+		const numberOfZeros = deltas.filter((element) => element === 0).length;
 
-		if(numberOfOnes === 4) {  // four 1s => straight
-			result = "straight"; 
-			payout = 4 ;
+		// CASE 1: delta array = [1,1,1,1] <=> result >= "straight"
+		if(numberOfOnes === 4) {  // check for straight
+			if(this.containsFlush()) { // check for straight flush
+				if(sortedCards[4].rank === 14) { // check for royal flush
+					result = "royal flush"; payout = 250;
+				} else { result = "straight flush"; payout = 50 }
+			} else { result = "straight"; payout = 4; }
 		} 
 
-		switch(numberOfZeros) {
-			case 3:
-				if(diffArray[0] != 0 || diffArray[3] != 0) { 
-					result = "four of a kind"; // three consecutive 0s => four of a kind
-					payout = 25;
-				} else {  // three non-consecutive 0s => full house
-					result = "full house"; 
-					payout = 9;
-				} 
+		// CASE 2A - 2C: delta array contains 3 / 2 / 1 zero(s).
+		switch(numberOfZeros) { 
+			case 3: // 3 zeros; => (4,3) = 4 possibilities
+				// consecutive 0s: (*000) | (000*)
+				if(deltas[0] + deltas[3] !== 0) { 
+					result = "four of a kind"; payout = 25; } 
+				// non-consecutive 0s: (0*00) | (00*0)
+				else { result = "full house"; payout = 9; } 
 				break;
-			case 2: 
-				if(diffArray.lastIndexOf(0) - diffArray.indexOf(0) === 1) { // two consecutive 0s
-					result = "three of a kind"; 
-					payout = 3;
-				} else { // two non-consecutive 0s
-					result = "two pair"; 
-					payout = 2;
-				} 
+			case 2: // 2 zeros; => (4,2) = 6 possibilities
+				// consecutive 0s: (00**) | (*00*) | (**00)
+				if(deltas.lastIndexOf(0) - deltas.indexOf(0) === 1) { 
+					result = "three of a kind"; payout = 3; }
+				// non-consecutive 0s: 0**0 | 0*0* | *0*0
+				else { result = "two pair"; payout = 2; } 
 				break;
-			case 1: // singular 0
-				if(sortedCards[diffArray.indexOf(0)].rank > 10) {
-					result = "jacks or better";
-					payout = 1;
-				}
+			case 1: // 1 zero: (0***) | (*0**) | (**0*) | (***0) (irrelevant)
+				// only high pairs count as winning hand ("Jacks or Better")
+				if(sortedCards[deltas.indexOf(0)].rank > 10) {
+					result = "jacks or better"; payout = 1; }
+				// low pairs don't pay
+				else { result = "none"; payout = 0; }
 		}
 
-		// check for flush & straight flush
-		if(this.containsFlush()) {
-			switch(result) {
-				case "straight": result += " flush"; break;
-				case "none": result = "flush"; break;
-			}
-		}
-
-		// check for royal flush
-		if(result === "straight flush") {
-			if(sortedCards[4].rank === 14) {
-				result = "royal flush";
-			}
+		// CASE 3: check for flush 
+		if(result === "none" && this.containsFlush()) {
+			result = "flush"; payout = 6;
 		}
 	
 		return result;
@@ -163,11 +168,19 @@ class Deck {
 		}
 	}
 
-	draw() {
-		let randomInt = getRandomInt(1, this.cards.length);
+	currentSize() {
+		return this.cards.length;
+	}
+
+	drawCard() {
+		let randomInt = getRandomInt(1, this.currentSize());
 		let randomCard = this.cards[randomInt-1];
-		this.cards.splice(randomInt-1, 1)
+		this.cards.splice(randomInt-1, 1);
 		return randomCard;
+	}
+
+	dealHand() { 
+		return new Hand([1,2,3,4,5].map(i => this.drawCard()));
 	}
 
 } // END OF CLASS "Deck"
@@ -181,21 +194,12 @@ class ButtonHandler {
 		this.handler = document.querySelector(this.selector); 
 	}
 
-	enable() {
-		this.handler.removeAttribute("disabled");
-	}
+	// METHODS
+	enable() { this.handler.removeAttribute("disabled"); }
+	disable() { this.handler.setAttribute("disabled", true); }
+	addClass(className) { this.handler.classList.add(className); }
+	removeClass(className) { this.handler.classList.remove(className);}
 
-	disable() {
-		this.handler.setAttribute("disabled", true);
-	}
-
-	addClass(className) {
-		this.handler.classList.add(className);
-	}
-
-	removeClass(className) {
-		this.handler.classList.remove(className);
-	}
 } // END OF CLASS "ButtonHandler"
 /*---------------------------------------------------------------------------------------*/
 class DisplayHandler {
@@ -207,25 +211,13 @@ class DisplayHandler {
 		this.handler = document.querySelector(this.selector);
 	}
 
-	updateContent(content) {
-		this.handler.innerHTML = content;
-	}
+	// METHODS
+	replaceContent(content) { this.handler.innerHTML = content; }
+	addContent(content) { this.handler.innerHTML += content; }
+	setFontColor(newColor) { (this.handler).style.color = newColor; }
+	addClass(className) { this.handler.classList.add(className); }
+	removeClass(className) { this.handler.classList.remove(className); }
 
-	addContent(content) {
-		this.handler.innerHTML += content;
-	}
-
-	setFontColor(newColor) {
-		(this.handler).style.color = newColor;
-	}
-
-	addClass(className) {
-		this.handler.classList.add(className);
-	}
-
-	removeClass(className) {
-		this.handler.classList.remove(className);
-	}
 } // END OF CLASS "DisplayHandler"
 /*---------------------------------------------------------------------------------------*/
 class Screen {
@@ -238,7 +230,6 @@ class Screen {
 	gameOverDisplay = new DisplayHandler(".gameOver");
 	logDisplay = new DisplayHandler(".displayLog");
 
-
 	// BUTTON HANDLERS
 	newGameButton = new ButtonHandler(".actionButton.newGame");
 	dealButton = new ButtonHandler(".actionButton.deal");
@@ -247,79 +238,31 @@ class Screen {
 	autoRoundButton = new ButtonHandler(".actionButton.autoRound");
 	autoGameButton = new ButtonHandler(".actionButton.autoGame");
 
+
+
+	// METHODS
+
 	updateRound(n) {
-		this.roundDisplay.updateContent("Round " + n.toString());
+		this.roundDisplay.replaceContent("Round " + n.toString());
 		this.roundDisplay.setFontColor("white");
 	}
 
 	setCredit(newCredit) {
-		this.creditDisplay.updateContent("Credit: " + newCredit.toString());
+		this.creditDisplay.replaceContent("Credit: " + newCredit.toString());
 		this.creditDisplay.setFontColor("white");
 	}
 
 	updateCredit(oldCredit, newCredit) {
-		this.creditDisplay.updateContent("Credit: " + newCredit.toString() + 
+		this.creditDisplay.replaceContent("Credit: " + newCredit.toString() + 
 			"   (+" + (newCredit-oldCredit).toString() + ")");
-		if(newCredit === oldCredit) {
-			this.creditDisplay.setFontColor("lightcoral");
-		} else { this.creditDisplay.setFontColor("lightgreen"); }
+		let fontColor = (newCredit > oldCredit) ? "lightgreen" : "lightcoral";
+		this.creditDisplay.setFontColor(fontColor);
 	}
 
 	updateResult(newResult) {
-		this.resultDisplay.updateContent(newResult.toUpperCase());
-		if(newResult === "none") {
-			this.resultDisplay.setFontColor("lightcoral");
-		} else { 
-			this.resultDisplay.setFontColor("lightgreen"); 
-		}
-	}
-
-	updateCardContent(i, newContent) { // i in {1,...,5}
-		this.cardDisplays[i-1].updateContent(newContent);
-	}
-
-	holdCard(i) {
-		this.cardDisplays[i-1].addClass("onHold");
-	}
-
-	unholdCard(i) {
-		this.cardDisplays[i-1].removeClass("onHold");
-	}
-
-	enableHoldButton(i) {
-		this.holdButtons[i-1].enable();
-	}
-
-	disableHoldButton(i) {
-		this.holdButtons[i-1].disable();
-	}
-
-	pressHoldButton(i) {
-		this.holdButtons[i-1].addClass("pressed");
-	}
-
-	unpressHoldButton(i) {
-		this.holdButtons[i-1].removeClass("pressed");
-	}
-
-	showPayoutBoard() {
-		document.querySelector(".payoutBoard").setAttribute("style", "display:flex");
-	}
-
-	hidePayoutBoard() {
-		document.querySelector(".payoutBoard").setAttribute("style", "display:none");
-	}
-
-	showGameOverBoard() {
-		document.querySelector(".gameOver").setAttribute("style", "display:block");
-	}
-
-	hideGameOverBoard() {
-		document.querySelector(".gameOver").setAttribute("style", "display:none");
-	}
-
-	clearLog() {
-		document.querySelector(".displayLog").innerHTML = "";
+		this.resultDisplay.replaceContent(newResult.toUpperCase());
+		let fontColor = (newResult !== "none") ? "lightgreen" : "lightcoral";
+		this.resultDisplay.setFontColor(fontColor);
 	}
 
 	clearPayoutBoard() {
@@ -346,6 +289,20 @@ class Screen {
 		this.logDisplay.addContent("Round " + roundCount + ": " + result + "<br>");
 		this.logDisplay.handler.scrollTop = this.logDisplay.handler.scrollHeight;
 	}
+
+	updateCardContent(i, newContent) { this.cardDisplays[i-1].replaceContent(newContent); }
+	holdCard(i) { this.cardDisplays[i-1].addClass("onHold"); }
+	unholdCard(i) { this.cardDisplays[i-1].removeClass("onHold"); }
+	enableHoldButton(i) { this.holdButtons[i-1].enable(); }
+	disableHoldButton(i) { this.holdButtons[i-1].disable(); }
+	pressHoldButton(i) { this.holdButtons[i-1].addClass("pressed"); }
+	unpressHoldButton(i) { this.holdButtons[i-1].removeClass("pressed"); } 
+	showPayoutBoard() { document.querySelector(".payoutBoard").setAttribute("style", "display:flex"); }
+	hidePayoutBoard() { document.querySelector(".payoutBoard").setAttribute("style", "display:none"); }
+	showGameOverBoard() { document.querySelector(".gameOver").setAttribute("style", "display:block"); }
+	hideGameOverBoard() { document.querySelector(".gameOver").setAttribute("style", "display:none"); }
+	clearLog() { document.querySelector(".displayLog").innerHTML = ""; }
+
 }
 
 /* MAIN GAME-----------------------------------------------------------------------------*/
@@ -396,13 +353,14 @@ const newGame = () => {
 	screen.clearLog();
 
 	lastResult = "none";
+	
 } // END OF "newGame()"
 /*---------------------------------------------------------------------------------------*/
 const deal = () => {
 
 	// initialize global variables
 	currentDeck = new Deck();
-	currentHand = new Hand();
+	currentHand = currentDeck.dealHand();
 	toHold = new Set();
 
 	// maintain round count and credit
@@ -420,14 +378,11 @@ const deal = () => {
 	// clear payout board
 	screen.clearPayoutBoard();
 
-	// draw five cards
-	[1,2,3,4,5].forEach(i => currentHand.addCard(currentDeck.draw()));
-
 	// show cards in ascending order
 	sortedHand = currentHand.sortByRank();
 
 	// display each card
-	[1,2,3,4,5].forEach(i => screen.displayCard(i, sortedHand[i-1]));
+	[1,2,3,4,5].forEach(i => screen.displayCard(i, currentHand.getCard(i)));
 
 	// pre-draw outcome of the hand
 	currentResult = currentHand.determineResult();
@@ -451,7 +406,7 @@ const hold = i => {
 } // END OF "hold()"
 /*---------------------------------------------------------------------------------------*/
 const draw = () => {
-	newHand = new Hand();
+	newHand = new Hand([]);
 
 	// toggle buttons
 	screen.drawButton.disable();
@@ -462,11 +417,11 @@ const draw = () => {
 	// create & display new hand
 	for(i=1; i<=5; i++) {
 		if(toHold.has(i)) {
-			newHand.addCard(sortedHand[i-1]);
+			newHand.addCard(currentHand.getCard(i));
 		} else { 
-			let currentCard = currentDeck.draw();
-			screen.displayCard(i, currentCard);
+			let currentCard = currentDeck.drawCard();
 			newHand.addCard(currentCard);
+			screen.displayCard(i, currentCard);
 		}
 	}
 
@@ -497,15 +452,15 @@ const draw = () => {
 const gameOver = () => {
 	
 	// toggle buttons
-	screen.dealButton.disable();
 	screen.newGameButton.enable();
+	screen.dealButton.disable();
 	screen.autoRoundButton.disable();
 	screen.autoGameButton.enable();
 
 	// update info board
 	screen.hidePayoutBoard();
 	screen.showGameOverBoard();
-	screen.gameOverDisplay.updateContent( 
+	screen.gameOverDisplay.replaceContent( 
 		"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
 		"<br>Remember: The house always wins...");
 
