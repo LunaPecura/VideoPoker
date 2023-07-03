@@ -19,6 +19,7 @@
       <div class="verticalBar top">
 
         <div class="buttonPanel top">
+          <button class="actionButton newGame" onclick="myGame.newGame()">New Game</button>
           <button class="actionButton autoRound" disabled onclick="myGame.autoRound()">
             Auto-Round</button>
           <button class="actionButton autoGame" onclick="myGame.autoGame()">
@@ -108,8 +109,8 @@
       <!--bottom bar-->
       <div class="verticalBar bottom">
         <div class="buttonPanel bottom">
-          <button class="actionButton newGame" onclick="myGame.newGame()">New Game</button>
           <button class="actionButton deal" disabled onclick="myGame.deal()">Deal</button>
+          <button class="actionButton autoHold" disabled onclick="myGame.autoHold()">Auto-Hold</button>
           <button class="actionButton draw" disabled onclick="myGame.draw()">Draw</button>
         </div>
         <div class="display result">RESULT</div>

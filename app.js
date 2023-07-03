@@ -55,13 +55,17 @@ class Hand {
 	cards;	// array of (usually 5) cards
 	ranks;	// array of corresponding ranks, r e {2,...,14}
 	suits;	// array of corresponding suits, s e {1,...,4}
-	holds;	// some subset of {1,...,5}
+	holdsPostSorting;	
+	holds;	
+	result;
 
 	constructor(cardArray) {
 		this.cards = [...cardArray];
 		this.ranks = this.cards.map(card => card.rank);
 		this.suits = this.cards.map(card => card.suit);
-		this.holds = new Set();
+		this.holds = [];
+		this.holdsPostSorting = [];
+		this.result = "";
 	}
 
 	addCard(newCard) {
@@ -79,6 +83,10 @@ class Hand {
 	getCardArray() { return [...this.cards]; } 
 	getRankArray() { return [...this.ranks]; } 
 	getSuitArray() { return [...this.suits]; } 
+
+	toString() {
+		return this.cards.map(card => card.toString()).reduce((s1,s2) => s1+s2);
+	}
 
 	/*** returns a new hand with the cards sorted according to their rank */
 	sortByRank() { 
@@ -104,50 +112,85 @@ class Hand {
 	}
 
 	determineResult() { 
+		//if(this.result !== "") { return this.result; }
+
 		let sortedCards = this.sortByRank().cards;
 		let deltas = this.deltaArray();
-		let result = "none";
 
 		// CASE 1: result in the 'straight' family (RF, SF, S)
-		let delta1 = deltas.map(d => (d===1) ? "1" : "x");
+		let delta1 = deltas.map(d => (d===1) ? "1" : "x").reduce((s1,s2) => s1+s2);
+		console.log("delta1: " + delta1);
 		if(delta1 === "1111") {  // check for straight
-			this.holds = new Set([1,2,3,4,5]);
+			this.holdsPostSorting = [1,2,3,4,5];
 			if(this.containsFlush()) { // check for straight flush
 				if(sortedCards[4].rank === 14) { // check for royal flush
-					return "royal flush"; // <=> RF
-				} else { return "straight flush"; } // <=> SF
-			} else { return "straight"; } // <=> S
+					this.result = "royal flush"; return this.result; 
+				} else { this.result = "straight flush"; return this.result; } 
+			} else { this.result = "straight"; return this.result; } 
 		} 
 
 		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
 		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
+		console.log("delta0: " + delta0);
 		switch(delta0) { 
-			case "x000": case "000x": // 3 consecutive 0s 
-				return "four of a kind"; // <=> Q
-			case "0x00": case "00x0": // 3 non-consecutive 0s
-				return "full house";	// <=> H
-			case "00xx": case "x00x": case "xx00": // 2 consecutive 0s
-				return "three of a kind"; // <=> T
-			case "0xx0": case "0x0x": case "x0x0":  // 2 non-consecutive 0s
-				return "two pair"; // <=> PP
-			case "0xxx": case "x0xx": case "xx0x": case "xxx0": // single 0
-				return (sortedCards[deltas.indexOf(0)].rank > 10) ?
-						"jacks or better" : "low pair"; // <=> HP : LP
+			case "x000": this.holdsPostSorting = [1,2,3,4,5]
+				this.result = "four of a kind"; return this.result;
+			case "000x": this.holdsPostSorting = [1,2,3,4];
+				this.result = "four of a kind"; return this.result;
+			case "0x00": this.holdsPostSorting = [1,2,3,4,5];
+				this.result = "full house";	return this.result;
+			case "00x0": this.holdsPostSorting = [1,2,3,4,5];
+				this.result = "full house";	return this.result;
+			case "00xx": this.holdsPostSorting = [1,2,3];
+				this.result = "three of a kind"; return this.result;
+			case "x00x": this.holdsPostSorting = [2,3,4];
+				this.result = "three of a kind"; return this.result;
+			case "xx00": this.holdsPostSorting = [3,4,5];
+				this.result = "three of a kind"; return this.result;
+			case "0xx0": this.holdsPostSorting = [1,2,4,5];
+				this.result = "two pair"; return this.result;
+			case "0x0x": this.holdsPostSorting = [1,2,3,4];
+				this.result = "two pair"; return this.result;
+			case "x0x0": this.holdsPostSorting = [2,3,4,5];
+				this.result = "two pair"; return this.result;
+			case "0xxx": this.holdsPostSorting = [1,2];
+				this.result = sortedCards[1].rank > 10 ? "jacks or better" : "low pair";
+				return this.result;
+			case "x0xx": this.holdsPostSorting = [2,3];
+				this.result = sortedCards[2].rank > 10 ? "jacks or better" : "low pair";
+				return this.result;
+			case "xx0x": this.holdsPostSorting = [3,4];
+				this.result = sortedCards[3].rank > 10 ? "jacks or better" : "low pair";
+				return this.result;
+			case "xxx0": this.holdsPostSorting = [4,5];
+				this.result = sortedCards[4].rank > 10 ? "jacks or better" : "low pair";
+				return this.result;
 		}
 
 		// CASE 3: check for flush 
-		if(result === "none" && this.containsFlush()) { 
-			this.holds = new Set([,2,3,4,5]);
-			return "flush"; 
+		if(this.containsFlush()) { 
+			this.holdsPostSorting = [1,2,3,4,5];
+			this.result = "flush";
+			return this.result;
 		}
+
+		// CASE 4: not a paying outcome
+		this.result = "none";
 	
-		return result;
+		return this.result;
 
 	} // END OF METHOD determineResult()
 
+	suggestedHolds() {
+		let sortedCards = this.sortByRank().cards;
+		this.holds = this.holdsPostSorting.map(i => this.cards.indexOf(sortedCards[i-1]) + 1);
+		return this.holds;
+	}
+
 	determinePayout() {
-		let result = this.determineResult();
-		switch(result) {
+		if(this.result !== "") { this.determineResult(); }
+
+		switch(this.result) {
 			case "royal flush": return 250;
 			case "straight flush": return 50;
 			case "four of a kind": return 25;
@@ -157,6 +200,7 @@ class Hand {
 			case "three of a kind": return 3;
 			case "two pair": return 2;
 			case "jacks or better": return 1;
+			case "low pair": return 0;
 			case "none": return 0;
 			default: return 0;
 		}
@@ -239,6 +283,7 @@ class Screen {
 	// BUTTON HANDLERS
 	newGameButton = new ButtonHandler(".actionButton.newGame");
 	dealButton = new ButtonHandler(".actionButton.deal");
+	autoHoldButton = new ButtonHandler(".actionButton.autoHold");
 	drawButton = new ButtonHandler(".actionButton.draw");
 	holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
 	autoRoundButton = new ButtonHandler(".actionButton.autoRound");
@@ -316,22 +361,22 @@ class Screen {
 
 class Game {
 
+	screen;
+	credit;
 	roundCount;
 	toHold;
 
 	currentDeck;
-	currentHand;
+	initialHand;
 	newHand;
 	
-	currentResult;
 	lastResult;
+	initialResult;
 	newResult;
 
-	credit;
-	//payout;
 	results;
 	payouts;
-	screen;
+	
 
 	newGame() {
 
@@ -361,13 +406,13 @@ class Game {
 	
 		this.lastResult = "none";
 	
-	} // END OF "newGame()"
+	} // END OF newGame()
 
 	deal() {
 
 		// initialize global variables
 		this.currentDeck = new Deck();
-		this.currentHand = this.currentDeck.dealHand();
+		this.initialHand = this.currentDeck.dealHand();
 		this.toHold = new Set();
 	
 		// maintain round count and credit
@@ -376,6 +421,7 @@ class Game {
 	
 		// toggle buttons
 		this.screen.dealButton.disable();
+		this.screen.autoHoldButton.enable();
 		this.screen.drawButton.enable();
 		this.screen.autoRoundButton.disable();
 		[1,2,3,4,5].forEach(i => this.screen.enableHoldButton(i));
@@ -385,18 +431,17 @@ class Game {
 		// clear payout board
 		this.screen.clearPayoutBoard();
 	
-		// show cards in ascending order
-		//this.sortedHand = this.currentHand.sortByRank();
-	
 		// display each card
-		[1,2,3,4,5].forEach(i => this.screen.displayCard(i, this.currentHand.getCard(i)));
+		[1,2,3,4,5].forEach(i => this.screen.displayCard(i, this.initialHand.getCard(i)));
 	
 		// pre-draw outcome of the hand
-		this.currentResult = this.currentHand.determineResult();
-		this.screen.updateResult(this.currentResult);
-		this.screen.updatePayoutBoard(this.currentResult);
+		this.initialResult = this.initialHand.determineResult();
+		console.log("Initial hand: " + this.initialHand.toString());
+		console.log("Initial result: " + this.initialResult);
+		this.screen.updateResult(this.initialResult);
+		this.screen.updatePayoutBoard(this.initialResult);
 	
-	} // END OF "deal()"
+	} // END OF deal()
 
 	hold(i) {
 
@@ -410,36 +455,41 @@ class Game {
 			this.screen.holdCard(i);
 		}
 	
-	} // END OF "hold()"
+	} // END OF hold()
 
 	autoHold() {
-	
+		this.initialHand.suggestedHolds().forEach(i => this.hold(i));
+		//let sortedCards = this.initialHand.sortByRank().cards;
+		//this.holds = sortedHolds.map(i => this.initialHand.cards.indexOf(sortedCards([i-1]) + 1));
 	}
 
 	draw() {
 		this.newHand = new Hand([]);
 	
 		// toggle buttons
-		this.screen.drawButton.disable();
 		this.screen.dealButton.enable();
+		this.screen.autoHoldButton.disable();
+		this.screen.drawButton.disable();
 		this.screen.autoRoundButton.enable();
 		[1,2,3,4,5].forEach(i => this.screen.disableHoldButton(i));
 	
 		// create & display new hand
 		for(let i=1; i<=5; i++) {
 			if(this.toHold.has(i)) {
-				this.newHand.addCard(this.currentHand.getCard(i));
+				this.newHand.addCard(this.initialHand.getCard(i));
 			} else { 
-				let currentCard = this.currentDeck.drawCard();
-				this.newHand.addCard(currentCard);
-				this.screen.displayCard(i, currentCard);
+				let newCard = this.currentDeck.drawCard();
+				this.newHand.addCard(newCard);
+				this.screen.displayCard(i, newCard);
 			}
 		}
 	
 		// post-draw outcome of the hand
-		let newResult = this.newHand.determineResult();
+		this.newResult = this.newHand.determineResult();
+		console.log("New hand: " + this.newHand.toString());
+		console.log("New result: " + this.newResult);
+		this.screen.updateResult(this.newResult);
 		let payout = this.newHand.determinePayout();
-		this.screen.updateResult(newResult);
 		
 		// update credits
 		let oldCredit = this.credit;
@@ -449,17 +499,17 @@ class Game {
 		
 		// update payout board
 		this.screen.clearPayoutBoard();
-		this.screen.updatePayoutBoard(newResult);
+		this.screen.updatePayoutBoard(this.newResult);
 	
 		// update log
-		this.screen.updateLog(this.roundCount, newResult);
+		this.screen.updateLog(this.roundCount, this.newResult);
 	
 		this.lastResult = this.newResult;
 	
 		if(this.credit === 0 && payout === 0) {
 			this.gameOver();
 		}
-	} // END OF "draw()"
+	} // END OF draw()
 
 	gameOver() {
 	
@@ -476,12 +526,12 @@ class Game {
 			"<b>GAME OVER</b><br>You survived " + this.roundCount + " rounds" +
 			"<br>Remember: The house always wins...");
 	
-	} // END OF "gameOver()"
+	} // END OF gameOver()
 
 	autoRound() {
 		this.deal();
 		this.draw();
-	} // END OF "autoRound()"
+	} // END OF autoRound()
 
 	autoGame() {
 		this.newGame();
@@ -495,7 +545,8 @@ class Game {
 				this.payouts.push(this.payout);
 			} else { clearInterval(myId); }
 		}, 1000 );
-	} // END OF "autoGame()"
+
+	} // END OF autoGame()
 
 }
 
