@@ -524,11 +524,11 @@ class Game {
 
 		setTimeout(() => {
 			this.autoHold();
-		}, 1000);
+		}, 500);
 
 		setTimeout(() => {
 			this.draw();
-		}, 2000);
+		}, 1000);
 
 	} // END OF autoRound()
 
@@ -543,7 +543,7 @@ class Game {
 				this.results.push(this.lastResult);
 				this.payouts.push(this.payout);
 			} else { clearInterval(myId); }
-		}, 1000 );
+		}, 2000 );
 
 	} // END OF autoGame()
 
