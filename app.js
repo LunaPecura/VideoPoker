@@ -547,6 +547,19 @@ class Game {
 
 	} // END OF autoGame()
 
+	instaGame() {
+		this.newGame();
+		this.results = [];
+		this.payouts = [];
+
+		while(this.credit !== 0) {
+			this.deal();
+			this.autoHold();
+			this.draw();
+			this.results.push(this.lastResult);
+			this.payouts.push(this.payout);
+		}
+	}
 }
 
 const myGame = new Game();
