@@ -55,17 +55,17 @@ class Hand {
 	cards;	// array of (usually 5) cards
 	ranks;	// array of corresponding ranks, r e {2,...,14}
 	suits;	// array of corresponding suits, s e {1,...,4}
-	holdsPostSorting;	
-	holds;	
 	result;
+	holdsPostSorting;
+	holds;
 
 	constructor(cardArray) {
 		this.cards = [...cardArray];
 		this.ranks = this.cards.map(card => card.rank);
 		this.suits = this.cards.map(card => card.suit);
+		this.result = ""
+		this.holdsPostSorting = [];;
 		this.holds = [];
-		this.holdsPostSorting = [];
-		this.result = "";
 	}
 
 	addCard(newCard) {
@@ -112,14 +112,11 @@ class Hand {
 	}
 
 	determineResult() { 
-		//if(this.result !== "") { return this.result; }
-
 		let sortedCards = this.sortByRank().cards;
 		let deltas = this.deltaArray();
 
 		// CASE 1: result in the 'straight' family (RF, SF, S)
 		let delta1 = deltas.map(d => (d===1) ? "1" : "x").reduce((s1,s2) => s1+s2);
-		console.log("delta1: " + delta1);
 		if(delta1 === "1111") {  // check for straight
 			this.holdsPostSorting = [1,2,3,4,5];
 			if(this.containsFlush()) { // check for straight flush
@@ -131,7 +128,6 @@ class Hand {
 
 		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
 		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
-		console.log("delta0: " + delta0);
 		switch(delta0) { 
 			case "x000": this.holdsPostSorting = [1,2,3,4,5]
 				this.result = "four of a kind"; return this.result;
@@ -154,17 +150,19 @@ class Hand {
 			case "x0x0": this.holdsPostSorting = [2,3,4,5];
 				this.result = "two pair"; return this.result;
 			case "0xxx": this.holdsPostSorting = [1,2];
-				this.result = sortedCards[1].rank > 10 ? "jacks or better" : "low pair";
+				this.result = (sortedCards[1].rank > 10) ? "jacks or better" : "low pair";
 				return this.result;
 			case "x0xx": this.holdsPostSorting = [2,3];
-				this.result = sortedCards[2].rank > 10 ? "jacks or better" : "low pair";
+				this.result = (sortedCards[2].rank > 10) ? "jacks or better" : "low pair";
 				return this.result;
 			case "xx0x": this.holdsPostSorting = [3,4];
-				this.result = sortedCards[3].rank > 10 ? "jacks or better" : "low pair";
+				this.result = (sortedCards[3].rank > 10) ? "jacks or better" : "low pair";
 				return this.result;
 			case "xxx0": this.holdsPostSorting = [4,5];
-				this.result = sortedCards[4].rank > 10 ? "jacks or better" : "low pair";
+				this.result = (sortedCards[4].rank > 10) ? "jacks or better" : "low pair";
 				return this.result;
+			case "xxxx": this.holdsPostSorting = [1,2,3,4,5].filter(i => sortedCards[i-1].rank > 10);
+				this.result = "high card"; return this.result;
 		}
 
 		// CASE 3: check for flush 
@@ -176,7 +174,6 @@ class Hand {
 
 		// CASE 4: not a paying outcome
 		this.result = "none";
-	
 		return this.result;
 
 	} // END OF METHOD determineResult()
@@ -322,7 +319,7 @@ class Screen {
 	}
 
 	updatePayoutBoard(newResult) {
-		if(newResult !== "none" && newResult !== "low pair") {
+		if(newResult !== "none" && newResult !== "low pair" && newResult !== "high card") {
 			let divLeft = document.querySelector("#" + stringToCamelCase(newResult));
 			divLeft.classList.add("highlighted");
 			let divRight = document.querySelector("#" + stringToCamelCase(newResult) + "Payout");
@@ -436,8 +433,6 @@ class Game {
 	
 		// pre-draw outcome of the hand
 		this.initialResult = this.initialHand.determineResult();
-		console.log("Initial hand: " + this.initialHand.toString());
-		console.log("Initial result: " + this.initialResult);
 		this.screen.updateResult(this.initialResult);
 		this.screen.updatePayoutBoard(this.initialResult);
 	
@@ -459,8 +454,6 @@ class Game {
 
 	autoHold() {
 		this.initialHand.suggestedHolds().forEach(i => this.hold(i));
-		//let sortedCards = this.initialHand.sortByRank().cards;
-		//this.holds = sortedHolds.map(i => this.initialHand.cards.indexOf(sortedCards([i-1]) + 1));
 	}
 
 	draw() {
@@ -486,8 +479,6 @@ class Game {
 	
 		// post-draw outcome of the hand
 		this.newResult = this.newHand.determineResult();
-		console.log("New hand: " + this.newHand.toString());
-		console.log("New result: " + this.newResult);
 		this.screen.updateResult(this.newResult);
 		let payout = this.newHand.determinePayout();
 		
@@ -530,7 +521,15 @@ class Game {
 
 	autoRound() {
 		this.deal();
-		this.draw();
+
+		setTimeout(() => {
+			this.autoHold();
+		}, 1000);
+
+		setTimeout(() => {
+			this.draw();
+		}, 2000);
+
 	} // END OF autoRound()
 
 	autoGame() {
