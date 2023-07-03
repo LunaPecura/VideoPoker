@@ -19,9 +19,9 @@
       <div class="verticalBar top">
 
         <div class="buttonPanel top">
-          <button class="actionButton autoRound" disabled onclick="autoRound()">
+          <button class="actionButton autoRound" disabled onclick="myGame.autoRound()">
             Auto-Round</button>
-          <button class="actionButton autoGame" onclick="autoGame()">
+          <button class="actionButton autoGame" onclick="myGame.autoGame()">
             Auto-Game</button>
         </div>
 
@@ -74,31 +74,31 @@
 
         <!--card 1-->
         <div class="cardDiv" id="cardDiv1">
-          <button class="holdButton" id="holdButton1" disabled onclick="hold(1)">Hold</button>
+          <button class="holdButton" id="holdButton1" disabled onclick="myGame.hold(1)">Hold</button>
           <div class="cardArea" id="cardArea1"></div>
         </div>
 
         <!--card 2-->
         <div class="cardDiv" id="cardDiv2">
-          <button class="holdButton" id="holdButton2" disabled onclick="hold(2)">Hold</button>
+          <button class="holdButton" id="holdButton2" disabled onclick="myGame.hold(2)">Hold</button>
           <div class="cardArea" id="cardArea2"></div>
         </div>
 
         <!--card 3-->
         <div class="cardDiv" id="cardDiv3">
-          <button class="holdButton" id="holdButton3" disabled onclick="hold(3)">Hold</button>
+          <button class="holdButton" id="holdButton3" disabled onclick="myGame.hold(3)">Hold</button>
           <div class="cardArea" id="cardArea3"></div>
         </div>
 
         <!--card 4-->
         <div class="cardDiv" id="cardDiv4">
-          <button class="holdButton" id="holdButton4" disabled onclick="hold(4)">Hold</button>
+          <button class="holdButton" id="holdButton4" disabled onclick="myGame.hold(4)">Hold</button>
           <div class="cardArea" id="cardArea4"></div>
         </div>
 
         <!--card 5-->
         <div class="cardDiv" id="cardDiv5">
-          <button class="holdButton" id="holdButton5" disabled onclick="hold(5)">Hold</button>
+          <button class="holdButton" id="holdButton5" disabled onclick="myGame.hold(5)">Hold</button>
           <div class="cardArea" id="cardArea5"></div>
         </div>
 
@@ -108,9 +108,9 @@
       <!--bottom bar-->
       <div class="verticalBar bottom">
         <div class="buttonPanel bottom">
-          <button class="actionButton newGame" onclick="newGame()">New Game</button>
-          <button class="actionButton deal" disabled onclick="deal()">Deal</button>
-          <button class="actionButton draw" disabled onclick="draw()">Draw</button>
+          <button class="actionButton newGame" onclick="myGame.newGame()">New Game</button>
+          <button class="actionButton deal" disabled onclick="myGame.deal()">Deal</button>
+          <button class="actionButton draw" disabled onclick="myGame.draw()">Draw</button>
         </div>
         <div class="display result">RESULT</div>
         <div class="display round">ROUND</div>

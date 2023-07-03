@@ -15,8 +15,6 @@ function stringToCamelCase(str) {
 /*---------------------------------------------------------------------------------------*/
 
 
-/*
-
 
 /* CLASSES-------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
@@ -54,14 +52,16 @@ class Card {
 } // END OF CLASS "Card"
 /*---------------------------------------------------------------------------------------*/
 class Hand {
-	cards; // array of 5 cards
+	cards;	// array of (usually 5) cards
 	ranks;	// array of corresponding ranks, r e {2,...,14}
 	suits;	// array of corresponding suits, s e {1,...,4}
+	holds;	// some subset of {1,...,5}
 
 	constructor(cardArray) {
 		this.cards = [...cardArray];
 		this.ranks = this.cards.map(card => card.rank);
 		this.suits = this.cards.map(card => card.suit);
+		this.holds = new Set();
 	}
 
 	addCard(newCard) {
@@ -107,54 +107,60 @@ class Hand {
 		let sortedCards = this.sortByRank().cards;
 		let deltas = this.deltaArray();
 		let result = "none";
-		payout = 0; // global => FIX!
 
-		// The number of 1s in the delta array indicates straights and straight draws
-		const numberOfOnes = deltas.filter((element) => element === 1).length;
-		// The number of 0s in the delta array indicates multiplicity (pairs, triples etc)
-		const numberOfZeros = deltas.filter((element) => element === 0).length;
-
-		// CASE 1: delta array = [1,1,1,1] <=> result >= "straight"
-		if(numberOfOnes === 4) {  // check for straight
+		// CASE 1: result in the 'straight' family (RF, SF, S)
+		let delta1 = deltas.map(d => (d===1) ? "1" : "x");
+		if(delta1 === "1111") {  // check for straight
+			this.holds = new Set([1,2,3,4,5]);
 			if(this.containsFlush()) { // check for straight flush
 				if(sortedCards[4].rank === 14) { // check for royal flush
-					result = "royal flush"; payout = 250;
-				} else { result = "straight flush"; payout = 50 }
-			} else { result = "straight"; payout = 4; }
+					return "royal flush"; // <=> RF
+				} else { return "straight flush"; } // <=> SF
+			} else { return "straight"; } // <=> S
 		} 
 
-		// CASE 2A - 2C: delta array contains 3 / 2 / 1 zero(s).
-		switch(numberOfZeros) { 
-			case 3: // 3 zeros; => (4,3) = 4 possibilities
-				// consecutive 0s: (*000) | (000*)
-				if(deltas[0] + deltas[3] !== 0) { 
-					result = "four of a kind"; payout = 25; } 
-				// non-consecutive 0s: (0*00) | (00*0)
-				else { result = "full house"; payout = 9; } 
-				break;
-			case 2: // 2 zeros; => (4,2) = 6 possibilities
-				// consecutive 0s: (00**) | (*00*) | (**00)
-				if(deltas.lastIndexOf(0) - deltas.indexOf(0) === 1) { 
-					result = "three of a kind"; payout = 3; }
-				// non-consecutive 0s: 0**0 | 0*0* | *0*0
-				else { result = "two pair"; payout = 2; } 
-				break;
-			case 1: // 1 zero: (0***) | (*0**) | (**0*) | (***0) (irrelevant)
-				// only high pairs count as winning hand ("Jacks or Better")
-				if(sortedCards[deltas.indexOf(0)].rank > 10) {
-					result = "jacks or better"; payout = 1; }
-				// low pairs don't pay
-				else { result = "none"; payout = 0; }
+		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
+		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
+		switch(delta0) { 
+			case "x000": case "000x": // 3 consecutive 0s 
+				return "four of a kind"; // <=> Q
+			case "0x00": case "00x0": // 3 non-consecutive 0s
+				return "full house";	// <=> H
+			case "00xx": case "x00x": case "xx00": // 2 consecutive 0s
+				return "three of a kind"; // <=> T
+			case "0xx0": case "0x0x": case "x0x0":  // 2 non-consecutive 0s
+				return "two pair"; // <=> PP
+			case "0xxx": case "x0xx": case "xx0x": case "xxx0": // single 0
+				return (sortedCards[deltas.indexOf(0)].rank > 10) ?
+						"jacks or better" : "low pair"; // <=> HP : LP
 		}
 
 		// CASE 3: check for flush 
-		if(result === "none" && this.containsFlush()) {
-			result = "flush"; payout = 6;
+		if(result === "none" && this.containsFlush()) { 
+			this.holds = new Set([,2,3,4,5]);
+			return "flush"; 
 		}
 	
 		return result;
 
-	} // END OF METHOD 'DETERMINE RESULT'
+	} // END OF METHOD determineResult()
+
+	determinePayout() {
+		let result = this.determineResult();
+		switch(result) {
+			case "royal flush": return 250;
+			case "straight flush": return 50;
+			case "four of a kind": return 25;
+			case "full house": return 9;
+			case "flush": return 6;
+			case "straight": return 4
+			case "three of a kind": return 3;
+			case "two pair": return 2;
+			case "jacks or better": return 1;
+			case "none": return 0;
+			default: return 0;
+		}
+	}
 } // END OF CLASS "Hand"
 /*---------------------------------------------------------------------------------------*/
 class Deck {
@@ -271,7 +277,7 @@ class Screen {
 	}
 
 	updatePayoutBoard(newResult) {
-		if(newResult !== "none") {
+		if(newResult !== "none" && newResult !== "low pair") {
 			let divLeft = document.querySelector("#" + stringToCamelCase(newResult));
 			divLeft.classList.add("highlighted");
 			let divRight = document.querySelector("#" + stringToCamelCase(newResult) + "Payout");
@@ -285,7 +291,7 @@ class Screen {
 		this.cardDisplays[i-1].setFontColor(fontColor);
 	}
 
-	updateLog(result) {
+	updateLog(roundCount, result) {
 		this.logDisplay.addContent("Round " + roundCount + ": " + result + "<br>");
 		this.logDisplay.handler.scrollTop = this.logDisplay.handler.scrollHeight;
 	}
@@ -308,185 +314,190 @@ class Screen {
 /* MAIN GAME-----------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
 
-// GLOBAL VARIABLES
-let currentDeck;
-let currentHand;
-let sortedHand;
-let roundCount;
-let newHand;
-let toHold;
-let currentResult;
-let lastResult;
-let newResult;
-let credit;
-let payout;
-let results;
-let payouts;
-let screen;
+class Game {
 
+	roundCount;
+	toHold;
 
-/*---------------------------------------------------------------------------------------*/
-const newGame = () => {
-
-	screen = new Screen();
-
-	// establish round count & credit
-	roundCount = 0;
-	credit = 10;
-	screen.updateRound(roundCount);
-	screen.setCredit(credit);
-
-	// toggle buttons
-	screen.newGameButton.disable();
-	screen.autoGameButton.disable();
-	screen.autoRoundButton.enable();
-	screen.dealButton.enable();
-
-	// reset card panel
-	[1,2,3,4,5].forEach(i => screen.updateCardContent(i, " "));
-	[1,2,3,4,5].forEach(i => screen.unholdCard(i));
-	[1,2,3,4,5].forEach(i => screen.unpressHoldButton(i));
-
-	// clear screen
-	screen.showPayoutBoard();
-	screen.hideGameOverBoard();
-	screen.clearLog();
-
-	lastResult = "none";
+	currentDeck;
+	currentHand;
+	newHand;
 	
-} // END OF "newGame()"
-/*---------------------------------------------------------------------------------------*/
-const deal = () => {
+	currentResult;
+	lastResult;
+	newResult;
 
-	// initialize global variables
-	currentDeck = new Deck();
-	currentHand = currentDeck.dealHand();
-	toHold = new Set();
+	credit;
+	//payout;
+	results;
+	payouts;
+	screen;
 
-	// maintain round count and credit
-	screen.updateRound(++roundCount)/
-	screen.setCredit(--credit);
+	newGame() {
 
-	// toggle buttons
-	screen.dealButton.disable();
-	screen.drawButton.enable();
-	screen.autoRoundButton.disable();
-	[1,2,3,4,5].forEach(i => screen.enableHoldButton(i));
-	[1,2,3,4,5].forEach(i => screen.unpressHoldButton(i));
-	[1,2,3,4,5].forEach(i => screen.unholdCard(i));
+		this.screen = new Screen();
+	
+		// establish round count & credit
+		this.roundCount = 0;
+		this.credit = 10;
+		this.screen.updateRound(this.roundCount);
+		this.screen.setCredit(this.credit);
+	
+		// toggle buttons
+		this.screen.newGameButton.disable();
+		this.screen.autoGameButton.disable();
+		this.screen.autoRoundButton.enable();
+		this.screen.dealButton.enable();
+	
+		// reset card panel
+		[1,2,3,4,5].forEach(i => this.screen.updateCardContent(i, " "));
+		[1,2,3,4,5].forEach(i => this.screen.unholdCard(i));
+		[1,2,3,4,5].forEach(i => this.screen.unpressHoldButton(i));
+	
+		// clear screen
+		this.screen.showPayoutBoard();
+		this.screen.hideGameOverBoard();
+		this.screen.clearLog();
+	
+		this.lastResult = "none";
+	
+	} // END OF "newGame()"
 
-	// clear payout board
-	screen.clearPayoutBoard();
+	deal() {
 
-	// show cards in ascending order
-	sortedHand = currentHand.sortByRank();
+		// initialize global variables
+		this.currentDeck = new Deck();
+		this.currentHand = this.currentDeck.dealHand();
+		this.toHold = new Set();
+	
+		// maintain round count and credit
+		this.screen.updateRound(++this.roundCount)/
+		this.screen.setCredit(--this.credit);
+	
+		// toggle buttons
+		this.screen.dealButton.disable();
+		this.screen.drawButton.enable();
+		this.screen.autoRoundButton.disable();
+		[1,2,3,4,5].forEach(i => this.screen.enableHoldButton(i));
+		[1,2,3,4,5].forEach(i => this.screen.unpressHoldButton(i));
+		[1,2,3,4,5].forEach(i => this.screen.unholdCard(i));
+	
+		// clear payout board
+		this.screen.clearPayoutBoard();
+	
+		// show cards in ascending order
+		//this.sortedHand = this.currentHand.sortByRank();
+	
+		// display each card
+		[1,2,3,4,5].forEach(i => this.screen.displayCard(i, this.currentHand.getCard(i)));
+	
+		// pre-draw outcome of the hand
+		this.currentResult = this.currentHand.determineResult();
+		this.screen.updateResult(this.currentResult);
+		this.screen.updatePayoutBoard(this.currentResult);
+	
+	} // END OF "deal()"
 
-	// display each card
-	[1,2,3,4,5].forEach(i => screen.displayCard(i, currentHand.getCard(i)));
+	hold(i) {
 
-	// pre-draw outcome of the hand
-	currentResult = currentHand.determineResult();
-	screen.updateResult(currentResult);
-	screen.updatePayoutBoard(currentResult);
-
-} // END OF "deal()"
-/*---------------------------------------------------------------------------------------*/
-const hold = i => {
-
-	if(toHold.has(i)) {
-		toHold.delete(i);
-		screen.unpressHoldButton(i);
-		screen.unholdCard(i);
-	} else {
-		toHold.add(i);
-		screen.pressHoldButton(i);
-		screen.holdCard(i);
-	}
-
-} // END OF "hold()"
-/*---------------------------------------------------------------------------------------*/
-const draw = () => {
-	newHand = new Hand([]);
-
-	// toggle buttons
-	screen.drawButton.disable();
-	screen.dealButton.enable();
-	screen.autoRoundButton.enable();
-	[1,2,3,4,5].forEach(i => screen.disableHoldButton(i));
-
-	// create & display new hand
-	for(i=1; i<=5; i++) {
-		if(toHold.has(i)) {
-			newHand.addCard(currentHand.getCard(i));
-		} else { 
-			let currentCard = currentDeck.drawCard();
-			newHand.addCard(currentCard);
-			screen.displayCard(i, currentCard);
+		if(this.toHold.has(i)) {
+			this.toHold.delete(i);
+			this.screen.unpressHoldButton(i);
+			this.screen.unholdCard(i);
+		} else {
+			this.toHold.add(i);
+			this.screen.pressHoldButton(i);
+			this.screen.holdCard(i);
 		}
+	
+	} // END OF "hold()"
+
+	autoHold() {
+	
 	}
 
-	// post-draw outcome of the hand
-	let newResult = newHand.determineResult();
-	screen.updateResult(newResult);
+	draw() {
+		this.newHand = new Hand([]);
 	
-	// update credits
-	let oldCredit = credit;
-	credit += payout;
-	let newCredit = credit;
-	screen.updateCredit(oldCredit, newCredit);
+		// toggle buttons
+		this.screen.drawButton.disable();
+		this.screen.dealButton.enable();
+		this.screen.autoRoundButton.enable();
+		[1,2,3,4,5].forEach(i => this.screen.disableHoldButton(i));
 	
-	// update payout board
-	screen.clearPayoutBoard();
-	screen.updatePayoutBoard(newResult);
-
-	// update log
-	screen.updateLog(newResult);
-
-	lastResult = newResult;
-
-	if(credit === 0 && payout === 0) {
-		gameOver();
-	}
-} // END OF "draw()"
-/*---------------------------------------------------------------------------------------*/
-const gameOver = () => {
+		// create & display new hand
+		for(let i=1; i<=5; i++) {
+			if(this.toHold.has(i)) {
+				this.newHand.addCard(this.currentHand.getCard(i));
+			} else { 
+				let currentCard = this.currentDeck.drawCard();
+				this.newHand.addCard(currentCard);
+				this.screen.displayCard(i, currentCard);
+			}
+		}
 	
-	// toggle buttons
-	screen.newGameButton.enable();
-	screen.dealButton.disable();
-	screen.autoRoundButton.disable();
-	screen.autoGameButton.enable();
-
-	// update info board
-	screen.hidePayoutBoard();
-	screen.showGameOverBoard();
-	screen.gameOverDisplay.replaceContent( 
-		"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
-		"<br>Remember: The house always wins...");
-
-} // END OF "gameOver()"
-/*---------------------------------------------------------------------------------------*/
-const autoRound = () => {
-	deal();
-	draw();
-} // END OF "autoRound()"
-/*---------------------------------------------------------------------------------------*/
-const autoGame = () => {
-	newGame();
-	results = [];
-	payouts = [];
+		// post-draw outcome of the hand
+		let newResult = this.newHand.determineResult();
+		let payout = this.newHand.determinePayout();
+		this.screen.updateResult(newResult);
+		
+		// update credits
+		let oldCredit = this.credit;
+		this.credit += payout;
+		let newCredit = this.credit;
+		this.screen.updateCredit(oldCredit, newCredit);
+		
+		// update payout board
+		this.screen.clearPayoutBoard();
+		this.screen.updatePayoutBoard(newResult);
 	
-	let myId = setInterval(() => {
-		if(credit !== 0) {
-			autoRound();
-			results.push(lastResult);
-			payouts.push(payout);
-		} else { clearInterval(myId); }
-	}, 1000 );
-} // END OF "autoGame()"
-/*---------------------------------------------------------------------------------------*/
+		// update log
+		this.screen.updateLog(this.roundCount, newResult);
+	
+		this.lastResult = this.newResult;
+	
+		if(this.credit === 0 && payout === 0) {
+			this.gameOver();
+		}
+	} // END OF "draw()"
 
+	gameOver() {
+	
+		// toggle buttons
+		this.screen.newGameButton.enable();
+		this.screen.dealButton.disable();
+		this.screen.autoRoundButton.disable();
+		this.screen.autoGameButton.enable();
+	
+		// update info board
+		this.screen.hidePayoutBoard();
+		this.screen.showGameOverBoard();
+		this.screen.gameOverDisplay.replaceContent( 
+			"<b>GAME OVER</b><br>You survived " + this.roundCount + " rounds" +
+			"<br>Remember: The house always wins...");
+	
+	} // END OF "gameOver()"
 
+	autoRound() {
+		this.deal();
+		this.draw();
+	} // END OF "autoRound()"
 
+	autoGame() {
+		this.newGame();
+		this.results = [];
+		this.payouts = [];
+		
+		let myId = setInterval(() => {
+			if(this.credit !== 0) {
+				this.autoRound();
+				this.results.push(this.lastResult);
+				this.payouts.push(this.payout);
+			} else { clearInterval(myId); }
+		}, 1000 );
+	} // END OF "autoGame()"
 
+}
+
+const myGame = new Game();
 
