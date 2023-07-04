@@ -19,8 +19,8 @@ function stringToCamelCase(str) {
 /* CLASSES-------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
 class Card {
-	rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
-	suit = 0; // int between 1 and 4 (clubs, diamonds, hearts, spades)
+	#rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
+	#suit = 0; // int between 1 and 4 (clubs, diamonds, hearts, spades)
 
 	constructor(rank, suit) {
 		this.rank = rank;
@@ -28,7 +28,11 @@ class Card {
 	}
 
 	// METHODS
+	getRankID() { return this.rank; }
+	getSuitID() { return this.suit; }
 	isRed() { return (this.suit === 2 || this.suit === 3); }
+	isHighCard() { return (this.rank > 10); }
+	isAce() { return (this.rank === 14); }
 
 	toString() {
 		let newString = (this.rank <= 10) ? this.rank.toString() : "";
@@ -40,10 +44,10 @@ class Card {
 			default: newString += ""; break;
 		}
 		switch(this.suit) {
-			case 1: newString += "&clubsuit;"; break;
-			case 2: newString += "&diamondsuit;"; break;
-			case 3: newString += "&heartsuit;"; break;
-			case 4: newString += "&spadesuit;"; break;
+			case 1: newString += "\u2663"; break;
+			case 2: newString += "\u2666"; break;
+			case 3: newString += "\u2665"; break;
+			case 4: newString += "\u2660"; break;
 			default: newString += ""; break;
 		}
 		return newString;
@@ -52,26 +56,26 @@ class Card {
 } // END OF CLASS "Card"
 /*---------------------------------------------------------------------------------------*/
 class Hand {
-	cards;	// array of (usually 5) cards
-	ranks;	// array of corresponding ranks, r e {2,...,14}
-	suits;	// array of corresponding suits, s e {1,...,4}
-	result;
-	holdsPostSorting;
-	holds;
+	#cards;	// array of (usually 5) cards
+	#ranks;	// array of corresponding ranks, r e {2,...,14}
+	#suits;	// array of corresponding suits, s e {1,...,4}
+	#outcome;
+	#holdsPostSorting;
+	#holds;
 
 	constructor(cardArray) {
 		this.cards = [...cardArray];
-		this.ranks = this.cards.map(card => card.rank);
-		this.suits = this.cards.map(card => card.suit);
-		this.result = ""
-		this.holdsPostSorting = [];;
+		this.ranks = this.cards.map(card => card.getRankID());
+		this.suits = this.cards.map(card => card.getSuitID());
+		this.outcome = "";
+		this.holdsPostSorting = [];
 		this.holds = [];
 	}
 
 	addCard(newCard) {
 		this.cards.push(newCard);
-		this.ranks.push(newCard.rank);
-		this.suits.push(newCard.suit);
+		this.ranks.push(newCard.getRankID());
+		this.suits.push(newCard.getSuitID());
 	}
 
 	/*** returns the i-th card / rank / suit of the hand, i e {1,...,5} */
@@ -85,14 +89,23 @@ class Hand {
 	getSuitArray() { return [...this.suits]; } 
 
 	toString() {
-		return this.cards.map(card => card.toString()).reduce((s1,s2) => s1+s2);
+		return this.cards.map(card => card.toString()).
+							reduce((s1,s2) => s1 + "|" + s2);
+	}
+
+	getOutcome() {
+		return this.determineResult();
+	}
+
+	getPayout() {
+		return this.determineResult();
 	}
 
 	/*** returns a new hand with the cards sorted according to their rank */
 	sortByRank() { 
-		let cardArrayCopy = this.getCardArray(); // don't mutate original 'cards' array!
-		let sortedCardArray = cardArrayCopy.sort((card1,card2) => card1.rank-card2.rank);
-		return new Hand(sortedCardArray);
+		let cardsCopy = this.getCardArray(); // don't mutate original 'cards' array!
+		let sortedCards = cardsCopy.sort((c1,c2) => c1.getRankID()-c2.getRankID());
+		return new Hand(sortedCards);
 	} 
 
 	/*** helper function for determining result */
@@ -115,66 +128,66 @@ class Hand {
 		let sortedCards = this.sortByRank().cards;
 		let deltas = this.deltaArray();
 
-		// CASE 1: result in the 'straight' family (RF, SF, S)
+		// CASE 1: outcome in the 'straight' family (RF, SF, S)
 		let delta1 = deltas.map(d => (d===1) ? "1" : "x").reduce((s1,s2) => s1+s2);
 		if(delta1 === "1111") {  // check for straight
 			this.holdsPostSorting = [1,2,3,4,5];
 			if(this.containsFlush()) { // check for straight flush
-				if(sortedCards[4].rank === 14) { // check for royal flush
-					this.result = "royal flush"; return this.result; 
-				} else { this.result = "straight flush"; return this.result; } 
-			} else { this.result = "straight"; return this.result; } 
+				if(sortedCards[4].isAce()) { // check for royal flush
+					this.outcome = "royal flush"; return this.outcome; }
+				else { this.outcome = "straight flush"; return this.outcome; } 
+			} else { this.outcome = "straight"; return this.outcome; } 
 		} 
 
 		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
 		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
 		switch(delta0) { 
-			case "x000": this.holdsPostSorting = [1,2,3,4,5]
-				this.result = "four of a kind"; return this.result;
+			case "x000": this.holdsPostSorting = [2,3,4,5]
+				this.outcome = "four of a kind"; return this.outcome;
 			case "000x": this.holdsPostSorting = [1,2,3,4];
-				this.result = "four of a kind"; return this.result;
+				this.outcome = "four of a kind"; return this.outcome;
 			case "0x00": this.holdsPostSorting = [1,2,3,4,5];
-				this.result = "full house";	return this.result;
+				this.outcome = "full house"; return this.outcome;
 			case "00x0": this.holdsPostSorting = [1,2,3,4,5];
-				this.result = "full house";	return this.result;
+				this.outcome = "full house";	return this.outcome;
 			case "00xx": this.holdsPostSorting = [1,2,3];
-				this.result = "three of a kind"; return this.result;
+				this.outcome = "three of a kind"; return this.outcome;
 			case "x00x": this.holdsPostSorting = [2,3,4];
-				this.result = "three of a kind"; return this.result;
+				this.outcome = "three of a kind"; return this.outcome;
 			case "xx00": this.holdsPostSorting = [3,4,5];
-				this.result = "three of a kind"; return this.result;
+				this.outcome = "three of a kind"; return this.outcome;
 			case "0xx0": this.holdsPostSorting = [1,2,4,5];
-				this.result = "two pair"; return this.result;
+				this.outcome = "two pair"; return this.outcome;
 			case "0x0x": this.holdsPostSorting = [1,2,3,4];
-				this.result = "two pair"; return this.result;
+				this.outcome = "two pair"; return this.outcome;
 			case "x0x0": this.holdsPostSorting = [2,3,4,5];
-				this.result = "two pair"; return this.result;
+				this.outcome = "two pair"; return this.outcome;
 			case "0xxx": this.holdsPostSorting = [1,2];
-				this.result = (sortedCards[1].rank > 10) ? "jacks or better" : "low pair";
-				return this.result;
+				this.outcome = (sortedCards[1].isHighCard()) ? "jacks or better" : "low pair";
+				return this.outcome;
 			case "x0xx": this.holdsPostSorting = [2,3];
-				this.result = (sortedCards[2].rank > 10) ? "jacks or better" : "low pair";
-				return this.result;
+				this.outcome = (sortedCards[2].isHighCard()) ? "jacks or better" : "low pair";
+				return this.outcome;
 			case "xx0x": this.holdsPostSorting = [3,4];
-				this.result = (sortedCards[3].rank > 10) ? "jacks or better" : "low pair";
-				return this.result;
+				this.outcome = (sortedCards[3].isHighCard()) ? "jacks or better" : "low pair";
+				return this.outcome;
 			case "xxx0": this.holdsPostSorting = [4,5];
-				this.result = (sortedCards[4].rank > 10) ? "jacks or better" : "low pair";
-				return this.result;
-			case "xxxx": this.holdsPostSorting = [1,2,3,4,5].filter(i => sortedCards[i-1].rank > 10);
-				this.result = "high card"; return this.result;
+				this.outcome = (sortedCards[4].isHighCard()) ? "jacks or better" : "low pair";
+				return this.outcome;
+			case "xxxx": this.holdsPostSorting = [1,2,3,4,5].filter(i => sortedCards[i-1].isHighCard());
+				this.outcome = "high card"; return this.outcome;
 		}
 
 		// CASE 3: check for flush 
 		if(this.containsFlush()) { 
 			this.holdsPostSorting = [1,2,3,4,5];
-			this.result = "flush";
-			return this.result;
+			this.outcome = "flush";
+			return this.outcome;
 		}
 
 		// CASE 4: not a paying outcome
-		this.result = "none";
-		return this.result;
+		this.outcome = "none";
+		return this.outcome;
 
 	} // END OF METHOD determineResult()
 
@@ -185,21 +198,21 @@ class Hand {
 	}
 
 	determinePayout() {
-		if(this.result !== "") { this.determineResult(); }
+		//if(this.result !== "") { this.determineResult(); }
 
-		switch(this.result) {
-			case "royal flush": return 250;
-			case "straight flush": return 50;
-			case "four of a kind": return 25;
-			case "full house": return 9;
-			case "flush": return 6;
-			case "straight": return 4
-			case "three of a kind": return 3;
-			case "two pair": return 2;
-			case "jacks or better": return 1;
-			case "low pair": return 0;
-			case "none": return 0;
-			default: return 0;
+		switch(this.getOutcome()) {
+			case "royal flush": this.payout = 250; return this.payout;
+			case "straight flush": this.payout = 50; return this.payout;
+			case "four of a kind": this.payout = 25; return this.payout;
+			case "full house": this.payout = 9; return this.payout;
+			case "flush": this.payout = 6; return this.payout;
+			case "straight": this.payout = 4; return this.payout;
+			case "three of a kind": this.payout = 3; return this.payout;
+			case "two pair": this.payout = 2; return this.payout;
+			case "jacks or better": this.payout = 1; return this.payout;
+			case "low pair": this.payout = 0; return this.payout;
+			case "none": this.payout = 0; return this.payout;
+			default: this.payout = 0; return this.payout;
 		}
 	}
 } // END OF CLASS "Hand"
@@ -307,23 +320,46 @@ class Screen {
 		this.creditDisplay.setFontColor(fontColor);
 	}
 
-	updateResult(newResult) {
-		this.resultDisplay.replaceContent(newResult.toUpperCase());
-		let fontColor = (newResult !== "none") ? "lightgreen" : "lightcoral";
-		this.resultDisplay.setFontColor(fontColor);
-	}
-
 	clearPayoutBoard() {
 		document.querySelectorAll(".payoutElement.highlighted")
 				.forEach(element => element.classList.remove("highlighted"));
+		document.querySelectorAll(".payoutElement.soft")
+				.forEach(element => element.classList.remove("soft"));
+		document.querySelectorAll(".payoutElement.strong")
+				.forEach(element => element.classList.remove("strong"));
 	}
 
-	updatePayoutBoard(newResult) {
-		if(newResult !== "none" && newResult !== "low pair" && newResult !== "high card") {
-			let divLeft = document.querySelector("#" + stringToCamelCase(newResult));
-			divLeft.classList.add("highlighted");
-			let divRight = document.querySelector("#" + stringToCamelCase(newResult) + "Payout");
-			divRight.classList.add("highlighted");
+	// update outcome display to post-deal state
+	odDeal(initialResult) {
+		this.resultDisplay.replaceContent(initialResult.toUpperCase());
+		let fontColor = (initialResult !== "none") ? "lightgreen" : "lightcoral";
+		this.resultDisplay.setFontColor(fontColor);
+	}
+
+	// update outcome display to post-draw state
+	odDraw(finalResult) {
+		this.resultDisplay.replaceContent(finalResult.toUpperCase());
+		let fontColor = (finalResult !== "none") ? "lightgreen" : "lightcoral";
+		this.resultDisplay.setFontColor(fontColor);
+	}
+
+	// update the payboard to post-deal state
+	pbDeal(initialResult) {
+		if(initialResult !== "none" && initialResult !== "low pair" && initialResult !== "high card") {
+			let divLeft = document.querySelector("#" + stringToCamelCase(initialResult));
+			divLeft.classList.add("highlighted", "soft");
+			let divRight = document.querySelector("#" + stringToCamelCase(initialResult) + "Payout");
+			divRight.classList.add("highlighted", "soft");
+		}
+	}
+
+	// update the payboard to post-draw state
+	pbDraw(finalResult) {
+		if(finalResult !== "none" && finalResult !== "low pair" && finalResult !== "high card") {
+			let divLeft = document.querySelector("#" + stringToCamelCase(finalResult));
+			divLeft.classList.add("highlighted", "strong");
+			let divRight = document.querySelector("#" + stringToCamelCase(finalResult) + "Payout");
+			divRight.classList.add("highlighted", "strong");
 		}
 	}
 
@@ -371,6 +407,8 @@ class Game {
 	initialResult;
 	newResult;
 
+	payout;
+
 	results;
 	payouts;
 	
@@ -382,6 +420,7 @@ class Game {
 		// establish round count & credit
 		this.roundCount = 0;
 		this.credit = 10;
+		this.payout = 0;
 		this.screen.updateRound(this.roundCount);
 		this.screen.setCredit(this.credit);
 	
@@ -413,7 +452,7 @@ class Game {
 		this.toHold = new Set();
 	
 		// maintain round count and credit
-		this.screen.updateRound(++this.roundCount)/
+		this.screen.updateRound(++this.roundCount);
 		this.screen.setCredit(--this.credit);
 	
 		// toggle buttons
@@ -425,16 +464,18 @@ class Game {
 		[1,2,3,4,5].forEach(i => this.screen.unpressHoldButton(i));
 		[1,2,3,4,5].forEach(i => this.screen.unholdCard(i));
 	
-		// clear payout board
-		this.screen.clearPayoutBoard();
-	
 		// display each card
 		[1,2,3,4,5].forEach(i => this.screen.displayCard(i, this.initialHand.getCard(i)));
 	
 		// pre-draw outcome of the hand
-		this.initialResult = this.initialHand.determineResult();
-		this.screen.updateResult(this.initialResult);
-		this.screen.updatePayoutBoard(this.initialResult);
+		this.initialResult = this.initialHand.getOutcome();
+		//this.screen.updateResult(this.initialResult);
+		this.screen.odDeal(this.initialResult);
+	
+
+		// clear payout board
+		this.screen.clearPayoutBoard();
+		this.screen.pbDeal(this.initialResult);
 	
 	} // END OF deal()
 
@@ -476,28 +517,29 @@ class Game {
 				this.screen.displayCard(i, newCard);
 			}
 		}
-	
+
 		// post-draw outcome of the hand
-		this.newResult = this.newHand.determineResult();
-		this.screen.updateResult(this.newResult);
-		let payout = this.newHand.determinePayout();
+		this.newResult = this.newHand.getOutcome();
+		this.screen.odDraw(this.newResult);
+		this.payout = this.newHand.determinePayout(); 
 		
 		// update credits
 		let oldCredit = this.credit;
-		this.credit += payout;
+		this.credit += this.payout;
 		let newCredit = this.credit;
 		this.screen.updateCredit(oldCredit, newCredit);
 		
-		// update payout board
+		// update payout board & outcome display
 		this.screen.clearPayoutBoard();
-		this.screen.updatePayoutBoard(this.newResult);
+		this.screen.pbDraw(this.newResult);
+		//this.screen.odDraw(this.newResult);
 	
 		// update log
 		this.screen.updateLog(this.roundCount, this.newResult);
 	
 		this.lastResult = this.newResult;
 	
-		if(this.credit === 0 && payout === 0) {
+		if(this.credit === 0 && this.payout === 0) {
 			this.gameOver();
 		}
 	} // END OF draw()
