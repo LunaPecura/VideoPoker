@@ -283,7 +283,7 @@ class DisplayHandler {
 class Screen {
 
 	// DISPLAY HANDLERS
-	resultDisplay = new DisplayHandler(".display.result");
+	outcomeDisplay = new DisplayHandler(".display.result");
 	roundDisplay = new DisplayHandler(".display.round");
 	creditDisplay = new DisplayHandler(".display.credit");
 	cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
@@ -299,6 +299,10 @@ class Screen {
 	autoRoundButton = new ButtonHandler(".actionButton.autoRound");
 	autoGameButton = new ButtonHandler(".actionButton.autoGame");
 
+	// COLORS
+	winningColor ="lightgreen";
+	losingColor = "lightcoral";
+
 
 
 	// METHODS
@@ -311,55 +315,64 @@ class Screen {
 	setCredit(newCredit) {
 		this.creditDisplay.replaceContent("Credit: " + newCredit.toString());
 		this.creditDisplay.setFontColor("white");
-	}
-
-	updateCredit(oldCredit, newCredit) {
-		this.creditDisplay.replaceContent("Credit: " + newCredit.toString() + 
-			"   (+" + (newCredit-oldCredit).toString() + ")");
-		let fontColor = (newCredit > oldCredit) ? "lightgreen" : "lightcoral";
-		this.creditDisplay.setFontColor(fontColor);
+		this.creditDisplay.handler.classList.remove("draw");
 	}
 
 	clearPayoutBoard() {
 		document.querySelectorAll(".payoutElement.highlighted")
 				.forEach(element => element.classList.remove("highlighted"));
-		document.querySelectorAll(".payoutElement.soft")
-				.forEach(element => element.classList.remove("soft"));
-		document.querySelectorAll(".payoutElement.strong")
-				.forEach(element => element.classList.remove("strong"));
+		document.querySelectorAll(".payoutElement.deal")
+				.forEach(element => element.classList.remove("deal"));
+		document.querySelectorAll(".payoutElement.draw")
+				.forEach(element => element.classList.remove("draw"));
+	}
+
+	// update credit display to post-draw state
+	cdDraw(oldCredit, newCredit) {
+		this.creditDisplay.replaceContent("Credit: " + newCredit.toString() + 
+			"   (+" + (newCredit-oldCredit).toString() + ")");
+		let fontColor = (newCredit > oldCredit) ? this.winningColor : this.losingColor;
+		this.creditDisplay.setFontColor(fontColor);
+		this.creditDisplay.handler.classList.add("draw");
 	}
 
 	// update outcome display to post-deal state
 	odDeal(initialResult) {
-		this.resultDisplay.replaceContent(initialResult.toUpperCase());
-		let fontColor = (initialResult !== "none") ? "lightgreen" : "lightcoral";
-		this.resultDisplay.setFontColor(fontColor);
+		this.outcomeDisplay.replaceContent(initialResult.toUpperCase());
+		let fontColor = Game.winningOutcomes.includes(initialResult) ? 
+						this.winningColor : this.losingColor;
+		this.outcomeDisplay.setFontColor(fontColor);
+		this.outcomeDisplay.handler.classList.add("deal");
+		this.outcomeDisplay.handler.classList.remove("draw");
 	}
 
 	// update outcome display to post-draw state
 	odDraw(finalResult) {
-		this.resultDisplay.replaceContent(finalResult.toUpperCase());
-		let fontColor = (finalResult !== "none") ? "lightgreen" : "lightcoral";
-		this.resultDisplay.setFontColor(fontColor);
+		this.outcomeDisplay.replaceContent(finalResult.toUpperCase());
+		let fontColor = Game.winningOutcomes.includes(finalResult) ? 
+						this.winningColor : this.losingColor;
+		this.outcomeDisplay.setFontColor(fontColor);
+		this.outcomeDisplay.handler.classList.add("draw");
+		this.outcomeDisplay.handler.classList.remove("deal");
 	}
 
 	// update the payboard to post-deal state
 	pbDeal(initialResult) {
-		if(initialResult !== "none" && initialResult !== "low pair" && initialResult !== "high card") {
+		if(Game.winningOutcomes.includes(initialResult)) {
 			let divLeft = document.querySelector("#" + stringToCamelCase(initialResult));
-			divLeft.classList.add("highlighted", "soft");
+			divLeft.classList.add("highlighted", "deal");
 			let divRight = document.querySelector("#" + stringToCamelCase(initialResult) + "Payout");
-			divRight.classList.add("highlighted", "soft");
+			divRight.classList.add("highlighted", "deal");
 		}
 	}
 
 	// update the payboard to post-draw state
 	pbDraw(finalResult) {
-		if(finalResult !== "none" && finalResult !== "low pair" && finalResult !== "high card") {
+		if(Game.winningOutcomes.includes(finalResult)) {
 			let divLeft = document.querySelector("#" + stringToCamelCase(finalResult));
-			divLeft.classList.add("highlighted", "strong");
+			divLeft.classList.add("highlighted", "draw");
 			let divRight = document.querySelector("#" + stringToCamelCase(finalResult) + "Payout");
-			divRight.classList.add("highlighted", "strong");
+			divRight.classList.add("highlighted", "draw");
 		}
 	}
 
@@ -369,9 +382,15 @@ class Screen {
 		this.cardDisplays[i-1].setFontColor(fontColor);
 	}
 
-	updateLog(roundCount, result) {
-		this.logDisplay.addContent("Round " + roundCount + ": " + result + "<br>");
+	updateLog(roundCount, result) { 
+		let newRow = document.createElement("div");
+		newRow.innerHTML = "Round " + roundCount + ": " + result + "<br>";
+		newRow.classList.add("displayLogRow");
+		document.querySelector(".displayLog").appendChild(newRow);
 		this.logDisplay.handler.scrollTop = this.logDisplay.handler.scrollHeight;
+		let fontColor = Game.winningOutcomes.includes(result) ?
+						this.winningColor : this.losingColor;
+		newRow.style.color = fontColor;
 	}
 
 	updateCardContent(i, newContent) { this.cardDisplays[i-1].replaceContent(newContent); }
@@ -411,6 +430,9 @@ class Game {
 
 	results;
 	payouts;
+
+	static winningOutcomes = ["royal flush", "straight flush", "four of a kind", "full house",
+				"flush", "straight", "three of a kind", "two pair", "jacks or better"];
 	
 
 	newGame() {
@@ -469,13 +491,11 @@ class Game {
 	
 		// pre-draw outcome of the hand
 		this.initialResult = this.initialHand.getOutcome();
-		//this.screen.updateResult(this.initialResult);
-		this.screen.odDeal(this.initialResult);
-	
 
-		// clear payout board
+		// update payout board & outcome display
 		this.screen.clearPayoutBoard();
 		this.screen.pbDeal(this.initialResult);
+		this.screen.odDeal(this.initialResult);
 	
 	} // END OF deal()
 
@@ -527,12 +547,11 @@ class Game {
 		let oldCredit = this.credit;
 		this.credit += this.payout;
 		let newCredit = this.credit;
-		this.screen.updateCredit(oldCredit, newCredit);
-		
+
 		// update payout board & outcome display
 		this.screen.clearPayoutBoard();
 		this.screen.pbDraw(this.newResult);
-		//this.screen.odDraw(this.newResult);
+		this.screen.cdDraw(oldCredit, newCredit);
 	
 		// update log
 		this.screen.updateLog(this.roundCount, this.newResult);
