@@ -55,11 +55,12 @@
 
 /* .buttonPanel.top {} */
 
-
 .display.credit {
   width: 150px;
   border: solid orchid;
 }
+
+/* .display.credit.deal { } */
 
 .infoBoard {
   display: flex;
@@ -82,8 +83,6 @@
   background-color: black;
   color: white;
   font-family: "Courier New";
-  font-size: 11px;
-  line-height: 12px;
   padding: 5px;
   overflow-y: auto;
 }
@@ -160,7 +159,6 @@
 .cardDiv {
   width: 20%;
   border: solid darkslategray;
-  /* border: solid black; */
 }
 
 .holdButton {
@@ -174,7 +172,6 @@
   background-color: lightgreen;
   color: black;
   border-color: darkslategray;
-  /* border: solid black; */
   font-weight: 900;
 }
 

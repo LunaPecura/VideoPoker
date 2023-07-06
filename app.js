@@ -59,7 +59,7 @@ class Hand {
 	#cards;	// array of (usually 5) cards
 	#ranks;	// array of corresponding ranks, r e {2,...,14}
 	#suits;	// array of corresponding suits, s e {1,...,4}
-	#outcome;
+
 	#holdsPostSorting;
 	#holds;
 
@@ -67,7 +67,6 @@ class Hand {
 		this.cards = [...cardArray];
 		this.ranks = this.cards.map(card => card.getRankID());
 		this.suits = this.cards.map(card => card.getSuitID());
-		this.outcome = "";
 		this.holdsPostSorting = [];
 		this.holds = [];
 	}
@@ -93,20 +92,82 @@ class Hand {
 							reduce((s1,s2) => s1 + "|" + s2);
 	}
 
-	getOutcome() {
-		return this.determineResult();
-	}
-
-	getPayout() {
-		return this.determineResult();
-	}
-
 	/*** returns a new hand with the cards sorted according to their rank */
 	sortByRank() { 
 		let cardsCopy = this.getCardArray(); // don't mutate original 'cards' array!
 		let sortedCards = cardsCopy.sort((c1,c2) => c1.getRankID()-c2.getRankID());
 		return new Hand(sortedCards);
 	} 
+
+	/*** returns the outcome of the hand as a string */
+	getOutcome() {
+		let sortedCards = this.sortByRank().cards;
+		let deltas = this.deltaArray();
+
+		// CASE 1: outcome in the 'straight' family (RF, SF, S)
+		let delta1 = deltas.map(d => (d===1) ? "1" : "x").reduce((s1,s2) => s1+s2);
+		if(delta1 === "1111") {  // check for straight
+			this.holdsPostSorting = [1,2,3,4,5];
+			if(this.containsFlush()) { // check for straight flush
+				if(sortedCards[4].isAce()) { // check for royal flush
+					return "royal flush"; }
+				else { return "straight flush"; } 
+			} else { return "straight"; } 
+		} 
+
+		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
+		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
+		switch(delta0) { 
+			case "x000": this.holdsPostSorting = [2,3,4,5]; return "four of a kind";
+			case "000x": this.holdsPostSorting = [1,2,3,4]; return "four of a kind";
+			case "0x00": this.holdsPostSorting = [1,2,3,4,5]; return "full house";
+			case "00x0": this.holdsPostSorting = [1,2,3,4,5]; return "full house";
+			case "00xx": this.holdsPostSorting = [1,2,3]; return "three of a kind";
+			case "x00x": this.holdsPostSorting = [2,3,4]; return "three of a kind";
+			case "xx00": this.holdsPostSorting = [3,4,5]; return "three of a kind"; 
+			case "0xx0": this.holdsPostSorting = [1,2,4,5]; return "two pair";
+			case "0x0x": this.holdsPostSorting = [1,2,3,4]; return "two pair"; 
+			case "x0x0": this.holdsPostSorting = [2,3,4,5]; return "two pair";
+			case "0xxx": this.holdsPostSorting = [1,2];
+				return (sortedCards[1].isHighCard()) ? "jacks or better" : "low pair";
+			case "x0xx": this.holdsPostSorting = [2,3];
+				return (sortedCards[2].isHighCard()) ? "jacks or better" : "low pair";
+			case "xx0x": this.holdsPostSorting = [3,4];
+				return (sortedCards[3].isHighCard()) ? "jacks or better" : "low pair";
+			case "xxx0": this.holdsPostSorting = [4,5];
+				return (sortedCards[4].isHighCard()) ? "jacks or better" : "low pair";
+			case "xxxx": this.holdsPostSorting = [1,2,3,4,5].filter(i => sortedCards[i-1].isHighCard());
+				return this.holdsPostSorting.length > 0 ? "high card" : "none";
+		}
+
+		// CASE 3: check for flush 
+		if(this.containsFlush()) { 
+			this.holdsPostSorting = [1,2,3,4,5];
+			return "flush";
+		}
+
+		// CASE 4: not a paying outcome
+		return "none";
+
+	} // END OF getOutcome()
+
+	getPayout() {
+		let outcome = this.getOutcome();
+		switch(outcome) {
+			case "royal flush": return 250; 
+			case "straight flush": return 50; 
+			case "four of a kind": return 25;
+			case "full house": return 9;
+			case "flush": return 6;
+			case "straight": return 4;
+			case "three of a kind": return 3;
+			case "two pair": return 2;
+			case "jacks or better": return 1;
+			case "low pair": return 0;
+			case "none": return 0;
+			default: return 0; 
+		}
+	}
 
 	/*** helper function for determining result */
 	/*** returns the array of "steps" through the sorted rank array */
@@ -124,97 +185,13 @@ class Hand {
 							reduce((p,q) => p && q);
 	}
 
-	determineResult() { 
-		let sortedCards = this.sortByRank().cards;
-		let deltas = this.deltaArray();
-
-		// CASE 1: outcome in the 'straight' family (RF, SF, S)
-		let delta1 = deltas.map(d => (d===1) ? "1" : "x").reduce((s1,s2) => s1+s2);
-		if(delta1 === "1111") {  // check for straight
-			this.holdsPostSorting = [1,2,3,4,5];
-			if(this.containsFlush()) { // check for straight flush
-				if(sortedCards[4].isAce()) { // check for royal flush
-					this.outcome = "royal flush"; return this.outcome; }
-				else { this.outcome = "straight flush"; return this.outcome; } 
-			} else { this.outcome = "straight"; return this.outcome; } 
-		} 
-
-		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
-		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
-		switch(delta0) { 
-			case "x000": this.holdsPostSorting = [2,3,4,5]
-				this.outcome = "four of a kind"; return this.outcome;
-			case "000x": this.holdsPostSorting = [1,2,3,4];
-				this.outcome = "four of a kind"; return this.outcome;
-			case "0x00": this.holdsPostSorting = [1,2,3,4,5];
-				this.outcome = "full house"; return this.outcome;
-			case "00x0": this.holdsPostSorting = [1,2,3,4,5];
-				this.outcome = "full house";	return this.outcome;
-			case "00xx": this.holdsPostSorting = [1,2,3];
-				this.outcome = "three of a kind"; return this.outcome;
-			case "x00x": this.holdsPostSorting = [2,3,4];
-				this.outcome = "three of a kind"; return this.outcome;
-			case "xx00": this.holdsPostSorting = [3,4,5];
-				this.outcome = "three of a kind"; return this.outcome;
-			case "0xx0": this.holdsPostSorting = [1,2,4,5];
-				this.outcome = "two pair"; return this.outcome;
-			case "0x0x": this.holdsPostSorting = [1,2,3,4];
-				this.outcome = "two pair"; return this.outcome;
-			case "x0x0": this.holdsPostSorting = [2,3,4,5];
-				this.outcome = "two pair"; return this.outcome;
-			case "0xxx": this.holdsPostSorting = [1,2];
-				this.outcome = (sortedCards[1].isHighCard()) ? "jacks or better" : "low pair";
-				return this.outcome;
-			case "x0xx": this.holdsPostSorting = [2,3];
-				this.outcome = (sortedCards[2].isHighCard()) ? "jacks or better" : "low pair";
-				return this.outcome;
-			case "xx0x": this.holdsPostSorting = [3,4];
-				this.outcome = (sortedCards[3].isHighCard()) ? "jacks or better" : "low pair";
-				return this.outcome;
-			case "xxx0": this.holdsPostSorting = [4,5];
-				this.outcome = (sortedCards[4].isHighCard()) ? "jacks or better" : "low pair";
-				return this.outcome;
-			case "xxxx": this.holdsPostSorting = [1,2,3,4,5].filter(i => sortedCards[i-1].isHighCard());
-				this.outcome = "high card"; return this.outcome;
-		}
-
-		// CASE 3: check for flush 
-		if(this.containsFlush()) { 
-			this.holdsPostSorting = [1,2,3,4,5];
-			this.outcome = "flush";
-			return this.outcome;
-		}
-
-		// CASE 4: not a paying outcome
-		this.outcome = "none";
-		return this.outcome;
-
-	} // END OF METHOD determineResult()
-
-	suggestedHolds() {
+	suggestedHolds() { // TODO
 		let sortedCards = this.sortByRank().cards;
 		this.holds = this.holdsPostSorting.map(i => this.cards.indexOf(sortedCards[i-1]) + 1);
 		return this.holds;
 	}
 
-	determinePayout() {
-		//if(this.result !== "") { this.determineResult(); }
-
-		switch(this.getOutcome()) {
-			case "royal flush": this.payout = 250; return this.payout;
-			case "straight flush": this.payout = 50; return this.payout;
-			case "four of a kind": this.payout = 25; return this.payout;
-			case "full house": this.payout = 9; return this.payout;
-			case "flush": this.payout = 6; return this.payout;
-			case "straight": this.payout = 4; return this.payout;
-			case "three of a kind": this.payout = 3; return this.payout;
-			case "two pair": this.payout = 2; return this.payout;
-			case "jacks or better": this.payout = 1; return this.payout;
-			case "low pair": this.payout = 0; return this.payout;
-			case "none": this.payout = 0; return this.payout;
-			default: this.payout = 0; return this.payout;
-		}
-	}
+	
 } // END OF CLASS "Hand"
 /*---------------------------------------------------------------------------------------*/
 class Deck {
@@ -228,10 +205,6 @@ class Deck {
 		}
 	}
 
-	currentSize() {
-		return this.cards.length;
-	}
-
 	drawCard() {
 		let randomInt = getRandomInt(1, this.currentSize());
 		let randomCard = this.cards[randomInt-1];
@@ -239,9 +212,9 @@ class Deck {
 		return randomCard;
 	}
 
-	dealHand() { 
-		return new Hand([1,2,3,4,5].map(i => this.drawCard()));
-	}
+	dealHand() { return new Hand([1,2,3,4,5].map(i => this.drawCard())); }
+	currentSize() { return this.cards.length; }
+
 
 } // END OF CLASS "Deck"
 /*---------------------------------------------------------------------------------------*/
@@ -272,30 +245,32 @@ class DisplayHandler {
 	}
 
 	// METHODS
-	replaceContent(content) { this.handler.innerHTML = content; }
 	addContent(content) { this.handler.innerHTML += content; }
+	replaceContent(content) { this.handler.innerHTML = content; }
 	setFontColor(newColor) { (this.handler).style.color = newColor; }
-	addClass(className) { this.handler.classList.add(className); }
-	removeClass(className) { this.handler.classList.remove(className); }
+	addClass(className) { this.handler.classList.add(className); return this;}
+	removeClass(className) { this.handler.classList.remove(className); return this; }
+	replaceClass(class1, class2) { this.addClass(class2).removeClass(class1); }
+	enableScroll() { this.handler.scrollTop = this.handler.scrollHeight; }
 
 } // END OF CLASS "DisplayHandler"
 /*---------------------------------------------------------------------------------------*/
 class Screen {
 
 	// DISPLAY HANDLERS
-	outcomeDisplay = new DisplayHandler(".display.result");
-	roundDisplay = new DisplayHandler(".display.round");
-	creditDisplay = new DisplayHandler(".display.credit");
+	creditDisplay = new DisplayHandler(".display.credit");  
+	outcomeDisplay = new DisplayHandler(".display.result"); 
+	roundDisplay = new DisplayHandler(".display.round"); 
+	logDisplay = new DisplayHandler(".displayLog");
 	cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
 	gameOverDisplay = new DisplayHandler(".gameOver");
-	logDisplay = new DisplayHandler(".displayLog");
 
 	// BUTTON HANDLERS
 	newGameButton = new ButtonHandler(".actionButton.newGame");
 	dealButton = new ButtonHandler(".actionButton.deal");
-	autoHoldButton = new ButtonHandler(".actionButton.autoHold");
 	drawButton = new ButtonHandler(".actionButton.draw");
 	holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
+	autoHoldButton = new ButtonHandler(".actionButton.autoHold");
 	autoRoundButton = new ButtonHandler(".actionButton.autoRound");
 	autoGameButton = new ButtonHandler(".actionButton.autoGame");
 
@@ -304,60 +279,61 @@ class Screen {
 	losingColor = "lightcoral";
 
 
+/* METHODS *************************************************************************************/
 
-	// METHODS
-
-	updateRound(n) {
-		this.roundDisplay.replaceContent("Round " + n.toString());
-		this.roundDisplay.setFontColor("white");
+	// update round display to post-deal state
+	roundDisplayUpdate(roundCount) { 
+		let newContent = "Round " + roundCount;
+		this.roundDisplay.replaceContent(newContent); 
 	}
 
-	setCredit(newCredit) {
-		this.creditDisplay.replaceContent("Credit: " + newCredit.toString());
+	// update credit display to post-deal state
+	creditDisplayDeal(newCredit) {
+		let newContent = "Credit: " + newCredit;
+		this.creditDisplay.replaceContent(newContent);
 		this.creditDisplay.setFontColor("white");
-		this.creditDisplay.handler.classList.remove("draw");
-	}
-
-	clearPayoutBoard() {
-		document.querySelectorAll(".payoutElement.highlighted")
-				.forEach(element => element.classList.remove("highlighted"));
-		document.querySelectorAll(".payoutElement.deal")
-				.forEach(element => element.classList.remove("deal"));
-		document.querySelectorAll(".payoutElement.draw")
-				.forEach(element => element.classList.remove("draw"));
+		this.creditDisplay.replaceClass("draw", "deal"); 
 	}
 
 	// update credit display to post-draw state
-	cdDraw(oldCredit, newCredit) {
-		this.creditDisplay.replaceContent("Credit: " + newCredit.toString() + 
-			"   (+" + (newCredit-oldCredit).toString() + ")");
-		let fontColor = (newCredit > oldCredit) ? this.winningColor : this.losingColor;
+	creditDisplayDraw(oldCredit, newCredit) {
+		let payout = newCredit - oldCredit;
+		let newContent = "Credit: " + newCredit + "   (+" + payout + ")";
+		let fontColor = (payout > 0) ? this.winningColor : this.losingColor;
+		this.creditDisplay.replaceContent(newContent);
 		this.creditDisplay.setFontColor(fontColor);
-		this.creditDisplay.handler.classList.add("draw");
+		this.creditDisplay.replaceClass("deal", "draw");
+	}
+
+	// update outcome display to any state (private helper method)
+	#outcomeDisplayUpdate = (result) => {
+		let newContent = result.toUpperCase();
+		let winning = Game.winningOutcomes.includes(result);
+		let fontColor = winning ? this.winningColor : this.losingColor;
+		this.outcomeDisplay.replaceContent(newContent);
+		this.outcomeDisplay.setFontColor(fontColor);
 	}
 
 	// update outcome display to post-deal state
-	odDeal(initialResult) {
-		this.outcomeDisplay.replaceContent(initialResult.toUpperCase());
-		let fontColor = Game.winningOutcomes.includes(initialResult) ? 
-						this.winningColor : this.losingColor;
-		this.outcomeDisplay.setFontColor(fontColor);
-		this.outcomeDisplay.handler.classList.add("deal");
-		this.outcomeDisplay.handler.classList.remove("draw");
+	outcomeDisplayDeal(initialResult) {
+		this.#outcomeDisplayUpdate(initialResult);
+		this.outcomeDisplay.replaceClass("draw", "deal");
 	}
 
 	// update outcome display to post-draw state
-	odDraw(finalResult) {
-		this.outcomeDisplay.replaceContent(finalResult.toUpperCase());
-		let fontColor = Game.winningOutcomes.includes(finalResult) ? 
-						this.winningColor : this.losingColor;
-		this.outcomeDisplay.setFontColor(fontColor);
-		this.outcomeDisplay.handler.classList.add("draw");
-		this.outcomeDisplay.handler.classList.remove("deal");
+	outcomeDisplayDraw(finalResult) {
+		this.#outcomeDisplayUpdate(finalResult);
+		this.outcomeDisplay.replaceClass("deal", "draw");
 	}
 
-	// update the payboard to post-deal state
-	pbDeal(initialResult) {
+	// remove highlighted rows on payout board
+	payoutBoardClear() {
+		document.querySelectorAll(".payoutElement")
+				.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
+	}
+
+	// update the payboard to post-deal state: highlight potential winning row
+	payoutBoardDeal(initialResult) {
 		if(Game.winningOutcomes.includes(initialResult)) {
 			let divLeft = document.querySelector("#" + stringToCamelCase(initialResult));
 			divLeft.classList.add("highlighted", "deal");
@@ -367,7 +343,7 @@ class Screen {
 	}
 
 	// update the payboard to post-draw state
-	pbDraw(finalResult) {
+	payoutBoardDraw(finalResult) {
 		if(Game.winningOutcomes.includes(finalResult)) {
 			let divLeft = document.querySelector("#" + stringToCamelCase(finalResult));
 			divLeft.classList.add("highlighted", "draw");
@@ -377,23 +353,30 @@ class Screen {
 	}
 
 	displayCard(i, card) {
-		this.updateCardContent(i, card.toString());
+		this.cardDisplays[i-1].replaceContent(card.toString());
 		let fontColor = card.isRed() ? "darkred" : "black";
 		this.cardDisplays[i-1].setFontColor(fontColor);
 	}
 
-	updateLog(roundCount, result) { 
-		let newRow = document.createElement("div");
-		newRow.innerHTML = "Round " + roundCount + ": " + result + "<br>";
-		newRow.classList.add("displayLogRow");
-		document.querySelector(".displayLog").appendChild(newRow);
-		this.logDisplay.handler.scrollTop = this.logDisplay.handler.scrollHeight;
-		let fontColor = Game.winningOutcomes.includes(result) ?
-						this.winningColor : this.losingColor;
-		newRow.style.color = fontColor;
+	cardDisplaysClear() {
+		[1,2,3,4,5].forEach(i => this.cardDisplays[i-1].replaceContent(" "));
 	}
 
-	updateCardContent(i, newContent) { this.cardDisplays[i-1].replaceContent(newContent); }
+	updateLog(roundCount, result) { 
+		let newRow = document.createElement("div");
+		newRow.setAttribute("class", "displayLogRow");
+		newRow.setAttribute("id", "row" + roundCount);
+		(this.logDisplay.handler).appendChild(newRow);
+
+		let rowDisplay = new DisplayHandler("#row" + roundCount);
+		let content = "Round " + roundCount + ": " + result + "<br>";
+		let winning = Game.winningOutcomes.includes(result);
+		let fontColor = winning ? this.winningColor : this.losingColor;
+		rowDisplay.addContent(content);
+		rowDisplay.setFontColor(fontColor);
+		this.logDisplay.enableScroll();
+	}
+
 	holdCard(i) { this.cardDisplays[i-1].addClass("onHold"); }
 	unholdCard(i) { this.cardDisplays[i-1].removeClass("onHold"); }
 	enableHoldButton(i) { this.holdButtons[i-1].enable(); }
@@ -443,8 +426,8 @@ class Game {
 		this.roundCount = 0;
 		this.credit = 10;
 		this.payout = 0;
-		this.screen.updateRound(this.roundCount);
-		this.screen.setCredit(this.credit);
+		this.screen.roundDisplayUpdate(this.roundCount);
+		//this.screen.creditDisplayDeal(this.credit);
 	
 		// toggle buttons
 		this.screen.newGameButton.disable();
@@ -453,7 +436,7 @@ class Game {
 		this.screen.dealButton.enable();
 	
 		// reset card panel
-		[1,2,3,4,5].forEach(i => this.screen.updateCardContent(i, " "));
+		this.screen.cardDisplaysClear();
 		[1,2,3,4,5].forEach(i => this.screen.unholdCard(i));
 		[1,2,3,4,5].forEach(i => this.screen.unpressHoldButton(i));
 	
@@ -474,8 +457,8 @@ class Game {
 		this.toHold = new Set();
 	
 		// maintain round count and credit
-		this.screen.updateRound(++this.roundCount);
-		this.screen.setCredit(--this.credit);
+		this.screen.roundDisplayUpdate(++this.roundCount);
+		this.screen.creditDisplayDeal(--this.credit);
 	
 		// toggle buttons
 		this.screen.dealButton.disable();
@@ -493,9 +476,9 @@ class Game {
 		this.initialResult = this.initialHand.getOutcome();
 
 		// update payout board & outcome display
-		this.screen.clearPayoutBoard();
-		this.screen.pbDeal(this.initialResult);
-		this.screen.odDeal(this.initialResult);
+		this.screen.payoutBoardClear();
+		this.screen.payoutBoardDeal(this.initialResult);
+		this.screen.outcomeDisplayDeal(this.initialResult);
 	
 	} // END OF deal()
 
@@ -540,8 +523,8 @@ class Game {
 
 		// post-draw outcome of the hand
 		this.newResult = this.newHand.getOutcome();
-		this.screen.odDraw(this.newResult);
-		this.payout = this.newHand.determinePayout(); 
+		this.screen.outcomeDisplayDraw(this.newResult);
+		this.payout = this.newHand.getPayout(); 
 		
 		// update credits
 		let oldCredit = this.credit;
@@ -549,9 +532,9 @@ class Game {
 		let newCredit = this.credit;
 
 		// update payout board & outcome display
-		this.screen.clearPayoutBoard();
-		this.screen.pbDraw(this.newResult);
-		this.screen.cdDraw(oldCredit, newCredit);
+		this.screen.payoutBoardClear();
+		this.screen.payoutBoardDraw(this.newResult);
+		this.screen.creditDisplayDraw(oldCredit, newCredit);
 	
 		// update log
 		this.screen.updateLog(this.roundCount, this.newResult);
