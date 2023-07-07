@@ -245,6 +245,8 @@ class DisplayHandler {
 	}
 
 	// METHODS
+	hide() { this.addClass("hidden"); }
+	show() { this.removeClass("hidden"); }
 	addContent(content) { this.handler.innerHTML += content; }
 	replaceContent(content) { this.handler.innerHTML = content; }
 	setFontColor(newColor) { (this.handler).style.color = newColor; }
@@ -257,19 +259,15 @@ class DisplayHandler {
 /*---------------------------------------------------------------------------------------*/
 class Screen {
 
-	constructor() {
-		document.querySelector(".welcome").removeAttribute("style");
-		document.querySelector(".welcome").setAttribute("style", "display:none");
-		document.querySelector(".infoBoard").removeAttribute("style");
-		document.querySelector(".infoBoard").setAttribute("style", "display:flex");
-	}
-
 	// DISPLAY HANDLERS
 	creditDisplay = new DisplayHandler(".display.credit");  
 	outcomeDisplay = new DisplayHandler(".display.result"); 
-	roundDisplay = new DisplayHandler(".display.round"); 
+	roundDisplay = new DisplayHandler(".display.round");
+	infoBoardDisplay = new DisplayHandler(".infoBoard");
+	payoutBoardDisplay = new DisplayHandler(".payoutBoard");
 	logDisplay = new DisplayHandler(".displayLog");
 	cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
+	welcomeDisplay = new DisplayHandler(".welcome");
 	gameOverDisplay = new DisplayHandler(".gameOver");
 
 	// BUTTON HANDLERS
@@ -286,7 +284,18 @@ class Screen {
 	losingColor = "lightcoral";
 
 
+
 /* METHODS *************************************************************************************/
+
+	showPayoutBoard() { this.payoutBoardDisplay.show(); }
+	hidePayoutBoard() { this.payoutBoardDisplay.hide(); }
+	showGameOverBoard() { this.gameOverDisplay.show(); }
+	hideGameOverBoard() { this.gameOverDisplay.hide(); }
+	showInfoBoard() { this.infoBoardDisplay.show(); }
+	hideInfoBoard() { this.infoBoardDisplay.hide(); }
+	showWelcomeBoard() {this.welcomeDisplay.show(); }
+	hideWelcomeBoard() {this.welcomeDisplay.hide(); }
+
 
 	// update round display to post-deal state
 	roundDisplayUpdate(roundCount) { 
@@ -390,10 +399,6 @@ class Screen {
 	disableHoldButton(i) { this.holdButtons[i-1].disable(); }
 	pressHoldButton(i) { this.holdButtons[i-1].addClass("pressed"); }
 	unpressHoldButton(i) { this.holdButtons[i-1].removeClass("pressed"); } 
-	showPayoutBoard() { document.querySelector(".payoutBoard").setAttribute("style", "display:flex"); }
-	hidePayoutBoard() { document.querySelector(".payoutBoard").setAttribute("style", "display:none"); }
-	showGameOverBoard() { document.querySelector(".gameOver").setAttribute("style", "display:block"); }
-	hideGameOverBoard() { document.querySelector(".gameOver").setAttribute("style", "display:none"); }
 	clearLog() { document.querySelector(".displayLog").innerHTML = ""; }
 
 }
@@ -447,8 +452,9 @@ class Game {
 		[1,2,3,4,5].forEach(i => this.screen.unpressHoldButton(i));
 	
 		// clear screen
-		this.screen.showPayoutBoard();
 		this.screen.hideGameOverBoard();
+		this.screen.hideWelcomeBoard();
+		this.screen.showInfoBoard();
 		this.screen.clearLog();
 	
 		this.lastResult = "none";
