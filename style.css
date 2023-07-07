@@ -68,6 +68,9 @@
   width: 794px;
   border: solid lightseagreen;
 }
+.infoBoard.hidden {
+  display: none;
+}
 
 .payoutBoard {
   display: flex;
@@ -106,11 +109,10 @@
 }
 
 .gameOver {
-  display:block;
+  display: block;
   height: 200px;
   width: 66%;
   border: solid lightcoral;
-  display: none;
   font-size: 30px;
   line-height: 60px;
   text-align: center;

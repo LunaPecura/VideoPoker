@@ -295,6 +295,7 @@ class Screen {
 	hideInfoBoard() { this.infoBoardDisplay.hide(); }
 	showWelcomeBoard() {this.welcomeDisplay.show(); }
 	hideWelcomeBoard() {this.welcomeDisplay.hide(); }
+	showLog() { this.logDisplay.show(); }
 
 
 	// update round display to post-deal state
@@ -455,6 +456,7 @@ class Game {
 		this.screen.hideGameOverBoard();
 		this.screen.hideWelcomeBoard();
 		this.screen.showInfoBoard();
+		this.screen.showPayoutBoard();
 		this.screen.clearLog();
 	
 		this.lastResult = "none";
@@ -568,7 +570,9 @@ class Game {
 	
 		// update info board
 		this.screen.hidePayoutBoard();
+		this.screen.showInfoBoard();
 		this.screen.showGameOverBoard();
+		this.screen.showLog();
 		this.screen.gameOverDisplay.replaceContent( 
 			"<b>GAME OVER</b><br>You survived " + this.roundCount + " rounds" +
 			"<br>Remember: The house always wins...");
