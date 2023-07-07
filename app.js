@@ -401,6 +401,8 @@ class Screen {
 	pressHoldButton(i) { this.holdButtons[i-1].addClass("pressed"); }
 	unpressHoldButton(i) { this.holdButtons[i-1].removeClass("pressed"); } 
 	clearLog() { document.querySelector(".displayLog").innerHTML = ""; }
+	showStats() { document.querySelector(".showStatsDiv").classList.remove("hidden"); }
+	hideStats() { document.querySelector(".showStatsDiv").classList.add("hidden"); }
 
 }
 
@@ -437,6 +439,7 @@ class Game {
 
 		this.screen = new Screen();
 		this.creditHistory = [];
+		this.screen.hideStats();
 	
 		// establish round count & credit
 		this.roundCount = 0;
@@ -584,9 +587,13 @@ class Game {
 		let creditString = this.creditHistory.map(credit => "<br>" + "*".repeat(credit))
 										.reduce((a,b) => a+b);
 		document.querySelector(".stats").innerHTML = creditString;
-		//document.querySelector(".stats").style.transform = "rotate(90deg)";
-	
+		this.screen.showStats();
+		
 	} // END OF gameOver()
+
+	showStats() {
+		document.querySelector
+	}
 
 	autoRound() {
 		this.deal();

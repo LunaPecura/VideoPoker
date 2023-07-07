@@ -218,10 +218,20 @@
   justify-self: flex-end;
 }
 
+.showStatsDiv {
+  border: solid slateblue;
+  width: 800px;
+}
+
+.statsDiv {
+  border: solid lightcoral;
+  width: 794px;
+}
+
 .stats {
   border: solid black;
   padding: 10px;
-  width: 780px;
+  width: 768px;
   font-size: 12px;
   line-height: 6px;
   overflow-x: auto;
