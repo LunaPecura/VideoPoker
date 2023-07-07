@@ -94,7 +94,15 @@
 }
 
 .welcome {
-  display: none;
+  /* display: flex; */
+  height: 205px;
+  width: 794px;
+  border: solid lightseagreen;
+  background-color: black;
+  font-size: 30px;
+  line-height: 60px;
+  text-align: center;
+  color: lightcoral;
 }
 
 .gameOver {

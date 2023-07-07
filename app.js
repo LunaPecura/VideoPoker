@@ -257,6 +257,13 @@ class DisplayHandler {
 /*---------------------------------------------------------------------------------------*/
 class Screen {
 
+	constructor() {
+		document.querySelector(".welcome").removeAttribute("style");
+		document.querySelector(".welcome").setAttribute("style", "display:none");
+		document.querySelector(".infoBoard").removeAttribute("style");
+		document.querySelector(".infoBoard").setAttribute("style", "display:flex");
+	}
+
 	// DISPLAY HANDLERS
 	creditDisplay = new DisplayHandler(".display.credit");  
 	outcomeDisplay = new DisplayHandler(".display.result"); 
@@ -427,7 +434,6 @@ class Game {
 		this.credit = 10;
 		this.payout = 0;
 		this.screen.roundDisplayUpdate(this.roundCount);
-		//this.screen.creditDisplayDeal(this.credit);
 	
 		// toggle buttons
 		this.screen.newGameButton.disable();
