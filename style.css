@@ -68,9 +68,6 @@
   width: 794px;
   border: solid lightseagreen;
 }
-.infoBoard.hidden {
-  display: none;
-}
 
 .payoutBoard {
   display: flex;

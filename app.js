@@ -456,7 +456,9 @@ class Game {
 		this.screen.hideGameOverBoard();
 		this.screen.hideWelcomeBoard();
 		this.screen.showInfoBoard();
-		this.screen.showPayoutBoard();
+
+		// necessary for repeated games
+		this.screen.showPayoutBoard(); 
 		this.screen.clearLog();
 	
 		this.lastResult = "none";
@@ -570,9 +572,7 @@ class Game {
 	
 		// update info board
 		this.screen.hidePayoutBoard();
-		this.screen.showInfoBoard();
 		this.screen.showGameOverBoard();
-		this.screen.showLog();
 		this.screen.gameOverDisplay.replaceContent( 
 			"<b>GAME OVER</b><br>You survived " + this.roundCount + " rounds" +
 			"<br>Remember: The house always wins...");
