@@ -427,6 +427,8 @@ class Game {
 	results;
 	payouts;
 
+	creditHistory;
+
 	static winningOutcomes = ["royal flush", "straight flush", "four of a kind", "full house",
 				"flush", "straight", "three of a kind", "two pair", "jacks or better"];
 	
@@ -434,12 +436,14 @@ class Game {
 	newGame() {
 
 		this.screen = new Screen();
+		this.creditHistory = [];
 	
 		// establish round count & credit
 		this.roundCount = 0;
 		this.credit = 10;
 		this.payout = 0;
 		this.screen.roundDisplayUpdate(this.roundCount);
+		this.creditHistory.push(this.credit);
 	
 		// toggle buttons
 		this.screen.newGameButton.disable();
@@ -556,6 +560,7 @@ class Game {
 		this.screen.updateLog(this.roundCount, this.newResult);
 	
 		this.lastResult = this.newResult;
+		this.creditHistory.push(this.credit);
 	
 		if(this.credit === 0 && this.payout === 0) {
 			this.gameOver();
@@ -576,6 +581,10 @@ class Game {
 		this.screen.gameOverDisplay.replaceContent( 
 			"<b>GAME OVER</b><br>You survived " + this.roundCount + " rounds" +
 			"<br>Remember: The house always wins...");
+		let creditString = this.creditHistory.map(credit => "<br>" + "*".repeat(credit))
+										.reduce((a,b) => a+b);
+		document.querySelector(".stats").innerHTML = creditString;
+		//document.querySelector(".stats").style.transform = "rotate(90deg)";
 	
 	} // END OF gameOver()
 

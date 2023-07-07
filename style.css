@@ -218,6 +218,17 @@
   justify-self: flex-end;
 }
 
+.stats {
+  border: solid black;
+  padding: 10px;
+  width: 780px;
+  font-size: 12px;
+  line-height: 6px;
+  overflow-x: auto;
+  text-align: right;
+  writing-mode: vertical-lr;
+}
+
 .hidden {
   display: none;
 }
