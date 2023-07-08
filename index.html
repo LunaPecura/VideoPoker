@@ -16,10 +16,11 @@
 
 
       <!--top bar FLEX-->
-      <div class="verticalBar top">
+      <div class="verticalBar">
 
-        <div class="buttonPanel top">
-          <button class="actionButton newGame" onclick="myGame.newGame()">New Game</button>
+        <div class="buttonPanel">
+          <button class="actionButton newGame" onclick="myGame.newGame()">
+            New Game</button>
           <button class="actionButton autoRound" disabled onclick="myGame.autoRound()">
             Auto-Round</button>
           <button class="actionButton autoGame" onclick="myGame.autoGame()">
@@ -28,13 +29,13 @@
             Insta-Game</button>
         </div>
 
-        <div class="display credit">CREDIT</div>
+        <div class="display round topPanel">ROUND</div>
+        <div class="display credit topPanel">CREDIT</div>
       </div> <!--end of top bar-->
 
 
       <div class="welcome">WELCOME</div>  
-      
-      <div class="infoBoard hidden">
+      <div class="infoPanel hidden">
         <div class="gameOver hidden"></div>
 
         
@@ -67,10 +68,10 @@
             <div class="payoutElement right" id="jacksOrBetterPayout">1</div>
           </div>
 
-        </div> <!--END OF PAYOUT BOARD-->
+        </div> <!--end of payout board-->
 
         <div class="displayLog"></div>
-      </div> <!--END OF INFO BOARD-->
+      </div> <!--end of info panel-->
 
 
       <!--card panel FLEX-->
@@ -110,14 +111,16 @@
 
 
       <!--bottom bar-->
-      <div class="verticalBar bottom">
-        <div class="buttonPanel bottom">
+      <div class="verticalBar">
+        <div class="buttonPanel">
           <button class="actionButton deal" disabled onclick="myGame.deal()">Deal</button>
           <button class="actionButton autoHold" disabled onclick="myGame.autoHold()">Auto-Hold</button>
           <button class="actionButton draw" disabled onclick="myGame.draw()">Draw</button>
+          <button class="actionButton" disabled>XXX</button>
+          <button class="actionButton" disabled>YYY</button>
         </div>
+        
         <div class="display result">RESULT</div>
-        <div class="display round">ROUND</div>
       </div>
 
     </div> <!--END OF MAIN CONTAINER-->

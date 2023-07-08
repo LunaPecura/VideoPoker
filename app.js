@@ -263,7 +263,7 @@ class Screen {
 	creditDisplay = new DisplayHandler(".display.credit");  
 	outcomeDisplay = new DisplayHandler(".display.result"); 
 	roundDisplay = new DisplayHandler(".display.round");
-	infoBoardDisplay = new DisplayHandler(".infoBoard");
+	infoBoardDisplay = new DisplayHandler(".infoPanel");
 	payoutBoardDisplay = new DisplayHandler(".payoutBoard");
 	logDisplay = new DisplayHandler(".displayLog");
 	cardDisplays = [1,2,3,4,5].map(i => new DisplayHandler("#cardArea" + i));
@@ -281,7 +281,8 @@ class Screen {
 
 	// COLORS
 	winningColor ="lightgreen";
-	losingColor = "lightcoral";
+	//losingColor = "lightcoral";
+	losingColor = "whitesmoke";
 
 
 
@@ -592,7 +593,7 @@ class Game {
 	} // END OF gameOver()
 
 	showStats() {
-		document.querySelector
+
 	}
 
 	autoRound() {

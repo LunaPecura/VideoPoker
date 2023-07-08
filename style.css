@@ -7,6 +7,7 @@
   padding: 10px;
   font-size: 20px;
   text-align: center;
+  border: solid purple;
 }
 
 .display.deal {
@@ -19,12 +20,12 @@
 
 .verticalBar {
   display: flex;
+  justify-content: space-between;
   height: 48px;
   width: 794px;
   background-color: black;
-  color: white;
-  border: solid purple;
-
+  color: whitesmoke;
+  border: solid orchid;
 }
 
 .actionButton { 
@@ -35,13 +36,14 @@
 }
 
 .buttonPanel {
-  border: solid gray;
   display: flex;
   justify-content: space-evenly;
+  border: solid purple;
+  width: 550px;
 }
 
 
-/*  ************************************************************************************/
+/***************************************************************************************/
 
 .mainContainer {
   width: 800px;
@@ -49,43 +51,38 @@
   border: solid black;
 }
 
-.verticalBar.top {
-  justify-content: space-between;
-}
-
-/* .buttonPanel.top {} */
-
 .display.credit {
   width: 150px;
-  border: solid orchid;
 }
 
-/* .display.credit.deal { } */
+.display.round {
+  width: 150px;
+}
 
-.infoBoard {
+.infoPanel {
   display: flex;
   height: 205px;
   width: 794px;
-  border: solid lightseagreen;
+  border: solid greenyellow;
 }
 
 .payoutBoard {
   display: flex;
   height: 200px;
-  border: solid orange;
   width: 66%;
+  border: solid limegreen;
 }
 
 .displayLog {
   display: block;
   width: 33%;
   height: 190px;
-  border: solid goldenrod;
   background-color: black;
   color: white;
   font-family: "Courier New";
   padding: 5px;
   overflow-y: auto;
+  border: solid limegreen;
 }
 
 .displayLogRow {
@@ -97,23 +94,23 @@
 .welcome {
   height: 205px;
   width: 794px;
-  border: solid lightseagreen;
   background-color: black;
   font-size: 30px;
   line-height: 60px;
   text-align: center;
   color: whitesmoke;
+  border: solid greenyellow;
 }
 
 .gameOver {
   display: block;
   height: 200px;
   width: 66%;
-  border: solid lightcoral;
   font-size: 30px;
   line-height: 60px;
   text-align: center;
   color: lightcoral;
+  border: solid lightcoral;
   background-color: black;
 }
 
@@ -132,8 +129,6 @@
   color:whitesmoke;
   font-weight: 500;
 }
-
-/* .payoutElement.highlighted { } */
 
 .payoutElement.highlighted.deal {
   background-color: rgb(0, 25, 0);
@@ -159,27 +154,29 @@
 
 .cardPanel {
   display: flex;
-  height: 250px;
   width: 794px;
-  border: solid palevioletred;
+  border: solid lightseagreen;
 }
 
 .cardDiv {
   width: 20%;
-  border: solid darkslategray;
+  border: solid teal;
+  background-color: teal;
 }
 
 .holdButton {
   width: 100%;
   height: 35px;
   color: black;
-  border: 2px solid lightgray;
+  border: solid lightgray;
+  background-color: lightgray;
+  margin-bottom: 5px;
 }
 
 .holdButton.pressed {
-  background-color: lightgreen;
+  background-color: lightseagreen;
   color: black;
-  border-color: darkslategray;
+  border: solid teal;
   font-weight: 900;
 }
 
@@ -194,33 +191,23 @@
   line-height: 200px;
   text-align: center;
   color: black;
-  border: 2px solid lightgray;
+  border: 2px solid whitesmoke;
+  background-color: whitesmoke;
+  border-radius: 10px;
 }
 
 .cardArea.onHold {
-  border-color: darkslategray;
+  border-color: teal;
 }
-
-.verticalBar.bottom {
-  justify-content: space-between;
-}
-
-/* .buttonPanel.bottom {} contains new-game, deal, draw buttons */
 
 .display.result {
   width: 250px;
-  border: solid turquoise;
-}
-
-.display.round {
-  width: 150px;
-  border: solid orchid;
-  justify-self: flex-end;
 }
 
 .showStatsDiv {
   border: solid slateblue;
   width: 800px;
+  margin-top: 25px;
 }
 
 .statsDiv {
