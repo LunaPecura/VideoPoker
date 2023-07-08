@@ -4,14 +4,14 @@ function getRandomInt(min, max) { // taken from MDN
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min + 1) + min); 
-} // END OF HELPER FUNCTION "getRandomInt()"
+}
 /*---------------------------------------------------------------------------------------*/
 function stringToCamelCase(str) {
 	let array = str.split(" ").map(word => word.charAt(0).toUpperCase() + word.slice(1));
 	array[0] = array[0].toLowerCase();
 	let camelCase = array.reduce((str1, str2) => str1 + str2);
 	return camelCase;
-} // END OF HELPER FUNCTION "stringToCamelCase()"
+} 
 /*---------------------------------------------------------------------------------------*/
 
 
@@ -19,15 +19,14 @@ function stringToCamelCase(str) {
 /* CLASSES-------------------------------------------------------------------------------*/
 /*---------------------------------------------------------------------------------------*/
 class Card {
-	#rank = 0; // int between 2 and 14 (... 10, jacks, queen, king, ace)
-	#suit = 0; // int between 1 and 4 (clubs, diamonds, hearts, spades)
+	rank; // int between 2 and 14 (... 10, jacks, queen, king, ace)
+	suit; // int between 1 and 4 (clubs, diamonds, hearts, spades)
 
 	constructor(rank, suit) {
 		this.rank = rank;
 		this.suit = suit;
 	}
 
-	// METHODS
 	getRankID() { return this.rank; }
 	getSuitID() { return this.suit; }
 	isRed() { return (this.suit === 2 || this.suit === 3); }
@@ -53,15 +52,15 @@ class Card {
 		return newString;
 	}
 
-} // END OF CLASS "Card"
+} 
 /*---------------------------------------------------------------------------------------*/
 class Hand {
-	#cards;	// array of (usually 5) cards
-	#ranks;	// array of corresponding ranks, r e {2,...,14}
-	#suits;	// array of corresponding suits, s e {1,...,4}
+	cards;	// array of (usually 5) cards
+	ranks;	// array of corresponding ranks, r e {2,...,14}
+	suits;	// array of corresponding suits, s e {1,...,4}
 
-	#holdsPostSorting;
-	#holds;
+	holdsPostSorting;
+	holds;
 
 	constructor(cardArray) {
 		this.cards = [...cardArray];
@@ -216,43 +215,37 @@ class Deck {
 	currentSize() { return this.cards.length; }
 
 
-} // END OF CLASS "Deck"
+}
 /*---------------------------------------------------------------------------------------*/
-class ButtonHandler {
+class ElementHandler {
 	selector;
 	handler;
-
+	
 	constructor(selector) {
 		this.selector = selector;
 		this.handler = document.querySelector(this.selector); 
 	}
 
-	// METHODS
+	addClass(className) { this.handler.classList.add(className); return this; }
+	removeClass(className) { this.handler.classList.remove(className); return this; }
+}
+/*---------------------------------------------------------------------------------------*/
+class ButtonHandler extends ElementHandler {
+	constructor(selector) { super(selector); }
+
 	enable() { this.handler.removeAttribute("disabled"); }
 	disable() { this.handler.setAttribute("disabled", true); }
-	addClass(className) { this.handler.classList.add(className); }
-	removeClass(className) { this.handler.classList.remove(className);}
-
-} // END OF CLASS "ButtonHandler"
+} 
 /*---------------------------------------------------------------------------------------*/
-class DisplayHandler {
-	selector;
-	handler; 
+class DisplayHandler extends ElementHandler {
+	constructor(selector){ super(selector); }
 
-	constructor(selector){
-		this.selector = selector;
-		this.handler = document.querySelector(this.selector);
-	}
-
-	// METHODS
 	hide() { this.addClass("hidden"); }
 	show() { this.removeClass("hidden"); }
 	addContent(content) { this.handler.innerHTML += content; }
 	replaceContent(content) { this.handler.innerHTML = content; }
 	setFontColor(newColor) { (this.handler).style.color = newColor; }
-	addClass(className) { this.handler.classList.add(className); return this;}
-	removeClass(className) { this.handler.classList.remove(className); return this; }
-	replaceClass(class1, class2) { this.addClass(class2).removeClass(class1); }
+	replaceClass(class1, class2) { this.addClass(class2).removeClass(class1); } // !
 	enableScroll() { this.handler.scrollTop = this.handler.scrollHeight; }
 
 } // END OF CLASS "DisplayHandler"
