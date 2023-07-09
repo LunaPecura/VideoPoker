@@ -247,7 +247,6 @@ class DisplayHandler extends ElementHandler {
 	setFontColor(newColor) { (this.handler).style.color = newColor; }
 	replaceClass(class1, class2) { this.addClass(class2).removeClass(class1); } // !
 	enableScroll() { this.handler.scrollTop = this.handler.scrollHeight; }
-
 } 
 /*---------------------------------------------------------------------------------------*/
 class Screen {
@@ -271,8 +270,13 @@ class Screen {
 
 	newGameState() {
 		this.hideStats();
-		this.roundDisplayUpdate(0);
-		this.creditDisplayUpdate(10);
+
+		let creditDisplay = new DisplayHandler(".display.credit");
+		creditDisplay.replaceContent("Credit: 10");
+		creditDisplay.setFontColor("white");
+
+		let roundDisplay = new DisplayHandler(".display.round");
+		roundDisplay.replaceContent("Round " + 0); 
 
 		// toggle buttons
 		this.newGameButton.disable();
@@ -286,18 +290,29 @@ class Screen {
 		[1,2,3,4,5].forEach(i => this.unpressHoldButton(i));
 	
 		// clear screen
-		this.hideGameOverBoard();
-		this.hideWelcomeBoard();
-		this.showInfoBoard();
+		new DisplayHandler(".gameOver").hide();
+		new DisplayHandler(".welcome").hide();
+		new DisplayHandler(".infoPanel").show();
+		new DisplayHandler(".payoutBoard").show();
 
-		// necessary for repeated games
-		this.showPayoutBoard(); 
 		this.clearLog();	
 	}
 
 	dealState(roundCount, credit, hand, outcome) {
-		this.roundDisplayUpdate(roundCount);
-		this.creditDisplayDeal(credit);
+
+		let creditDisplay = new DisplayHandler(".display.credit");
+		creditDisplay.replaceContent( "Credit: " + credit);
+		creditDisplay.setFontColor("white");
+		creditDisplay.replaceClass("draw", "deal"); 
+
+		let roundDisplay = new DisplayHandler(".display.round");
+		roundDisplay.replaceContent("Round " + roundCount);
+
+		let outcomeDisplay = new DisplayHandler(".display.result"); 
+		outcomeDisplay.replaceContent(outcome.toUpperCase());
+		outcomeDisplay.setFontColor(Game.winningOutcomes.includes(outcome) ? 
+										this.winningColor : this.losingColor);
+		outcomeDisplay.replaceClass("draw", "deal");
 	
 		// toggle buttons
 		this.dealButton.disable();
@@ -311,14 +326,31 @@ class Screen {
 		// display each card
 		[1,2,3,4,5].forEach(i => this.displayCard(i, hand.getCard(i)));
 	
-		// update payout board & outcome display
-		this.payoutBoardClear();
-		this.payoutBoardDeal(outcome);
-		this.outcomeDisplayDeal(outcome);
+		// remove previous highlights from payout board
+		document.querySelectorAll(".payoutElement")
+				.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
+
+		// highlight row according to outcome
+		if(Game.winningOutcomes.includes(outcome)) {
+			let divLeft = document.querySelector("#" + stringToCamelCase(outcome));
+			divLeft.classList.add("highlighted", "deal");
+			let divRight = document.querySelector("#" + stringToCamelCase(outcome) + "Payout");
+			divRight.classList.add("highlighted", "deal");
+		}
 	} 
 
 	drawState(roundCount, hand, outcome, credit, payout) {
+
+		let creditDisplay = new DisplayHandler(".display.credit");
+		creditDisplay.replaceClass("deal", "draw");
+		creditDisplay.replaceContent("Credit: " + (credit+payout) + "   (+" + payout + ")");
+		creditDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
 	
+		let outcomeDisplay = new DisplayHandler(".display.result"); 
+		outcomeDisplay.replaceClass("deal", "draw");
+		outcomeDisplay.replaceContent(outcome.toUpperCase());
+		outcomeDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
+
 		// toggle buttons
 		this.dealButton.enable();
 		this.autoHoldButton.disable();
@@ -329,46 +361,43 @@ class Screen {
 		// display each card
 		[1,2,3,4,5].forEach(i => this.displayCard(i, hand.getCard(i)));
 
-		// update payout board & outcome display
-		this.payoutBoardClear();
-		this.payoutBoardDraw(outcome);
-		this.outcomeDisplayDraw(outcome);
-		this.creditDisplayDraw(credit, credit + payout);
+		// strip previous highlighting from payout board
+		document.querySelectorAll(".payoutElement")
+				.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
+
+		// highlight row according to outcome
+		if(Game.winningOutcomes.includes(outcome)) {
+			let divLeft = document.querySelector("#" + stringToCamelCase(outcome));
+			divLeft.classList.add("highlighted", "draw");
+			let divRight = document.querySelector("#" + stringToCamelCase(outcome) + "Payout");
+			divRight.classList.add("highlighted", "draw");
+		}
 	
 		// update log
 		this.updateLog(roundCount, outcome);
 	} 
 
 	gameOverState(roundCount) {
+		new DisplayHandler(".payoutBoard").hide();
+		
 		let gameOverDisplay = new DisplayHandler(".gameOver");
-	
+		gameOverDisplay.show();
+		gameOverDisplay.replaceContent( 
+			"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
+			"<br>Remember: The house always wins...");
+
 		// toggle buttons
 		this.newGameButton.enable();
 		this.dealButton.disable();
 		this.autoRoundButton.disable();
 		this.autoGameButton.enable();
-	
-		// update info board
-		this.hidePayoutBoard();
-		this.showGameOverBoard();
-		gameOverDisplay.replaceContent( 
-			"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
-			"<br>Remember: The house always wins...");
+		
 		this.showStats();
 	}
 
 
 /* METHODS *************************************************************************************/
 
-	showPayoutBoard() { new DisplayHandler(".payoutBoard").show(); }
-	hidePayoutBoard() { new DisplayHandler(".payoutBoard").hide(); }
-	showGameOverBoard() { new DisplayHandler(".gameOver").show(); }
-	hideGameOverBoard() { new DisplayHandler(".gameOver").hide(); }
-	showInfoBoard() { (new DisplayHandler(".infoPanel")).show(); }
-	hideInfoBoard() { (new DisplayHandler(".infoPanel")).hide(); }
-	showWelcomeBoard() { new DisplayHandler(".welcome").show(); }
-	hideWelcomeBoard() { new DisplayHandler(".welcome").hide(); }
-	showLog() { new DisplayHandler(".displayLog").show(); }
 	holdCard(i) { new DisplayHandler("#cardArea" + i).addClass("onHold"); }
 	unholdCard(i) { new DisplayHandler("#cardArea" + i).removeClass("onHold"); }
 	enableHoldButton(i) { this.holdButtons[i-1].enable(); }
@@ -378,88 +407,6 @@ class Screen {
 	clearLog() { document.querySelector(".displayLog").innerHTML = ""; }
 	showStats() { document.querySelector(".showStatsDiv").classList.remove("hidden"); }
 	hideStats() { document.querySelector(".showStatsDiv").classList.add("hidden"); }
-	
-
-	// update round display to post-deal state
-	roundDisplayUpdate(roundCount) { 
-		let roundDisplay = new DisplayHandler(".display.round");
-		roundDisplay.replaceContent("Round " + roundCount); 
-	}
-
-	creditDisplayUpdate(newCredit) {
-		let creditDisplay = new DisplayHandler(".display.credit");
-		creditDisplay.replaceContent("Credit: " + newCredit);
-		creditDisplay.setFontColor("white");
-	}
-
-	// update credit display to post-deal state
-	creditDisplayDeal(newCredit) {
-		let creditDisplay = new DisplayHandler(".display.credit");
-		creditDisplay.replaceContent( "Credit: " + newCredit);
-		creditDisplay.setFontColor("white");
-		creditDisplay.replaceClass("draw", "deal"); 
-	}
-
-	// update credit display to post-draw state
-	creditDisplayDraw(oldCredit, newCredit) {
-		let creditDisplay = new DisplayHandler(".display.credit");
-		let payout = newCredit - oldCredit;
-		let newContent = "Credit: " + newCredit + "   (+" + payout + ")";
-		let fontColor = (payout > 0) ? this.winningColor : this.losingColor;
-		creditDisplay.replaceContent(newContent);
-		creditDisplay.setFontColor(fontColor);
-		creditDisplay.replaceClass("deal", "draw");
-	}
-
-	// update outcome display to any state (private helper method)
-	#outcomeDisplayUpdate = (result) => {
-		let outcomeDisplay = new DisplayHandler(".display.result"); 
-		let newContent = result.toUpperCase();
-		let winning = Game.winningOutcomes.includes(result);
-		let fontColor = winning ? this.winningColor : this.losingColor;
-		outcomeDisplay.replaceContent(newContent);
-		outcomeDisplay.setFontColor(fontColor);
-	}
-
-	// update outcome display to post-deal state
-	outcomeDisplayDeal(initialResult) {
-		let outcomeDisplay = new DisplayHandler(".display.result"); 
-		this.#outcomeDisplayUpdate(initialResult);
-		outcomeDisplay.replaceClass("draw", "deal");
-	}
-
-	// update outcome display to post-draw state
-	outcomeDisplayDraw(finalResult) {
-		let outcomeDisplay = new DisplayHandler(".display.result"); 
-		this.#outcomeDisplayUpdate(finalResult);
-		outcomeDisplay.replaceClass("deal", "draw");
-	}
-
-	// remove highlighted rows on payout board
-	payoutBoardClear() {
-		document.querySelectorAll(".payoutElement")
-				.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
-	}
-
-	// update the payboard to post-deal state: highlight potential winning row
-	payoutBoardDeal(initialResult) {
-		if(Game.winningOutcomes.includes(initialResult)) {
-			let divLeft = document.querySelector("#" + stringToCamelCase(initialResult));
-			divLeft.classList.add("highlighted", "deal");
-			let divRight = document.querySelector("#" + stringToCamelCase(initialResult) + "Payout");
-			divRight.classList.add("highlighted", "deal");
-		}
-	}
-
-	// update the payboard to post-draw state
-	payoutBoardDraw(finalResult) {
-		if(Game.winningOutcomes.includes(finalResult)) {
-			let divLeft = document.querySelector("#" + stringToCamelCase(finalResult));
-			divLeft.classList.add("highlighted", "draw");
-			let divRight = document.querySelector("#" + stringToCamelCase(finalResult) + "Payout");
-			divRight.classList.add("highlighted", "draw");
-		}
-	}
 
 	displayCard(i, card) {
 		let cardDisplay = new DisplayHandler("#cardArea" + i);
