@@ -297,10 +297,10 @@ class Screen {
 		[1,2,3,4,5].forEach(i => this.unpressHoldButton(i));
 	
 		// clear screen
-		new DisplayHandler(".gameOver").hide();
-		new DisplayHandler(".welcome").hide();
-		new DisplayHandler(".infoPanel").show();
-		new DisplayHandler(".payoutBoard").show();
+		this.gameOverDisplay.hide();
+		this.welcomeDisplay.hide();
+		this.infoPanel.show();
+		this.payboard.show();
 
 		this.clearLog();	
 	}
@@ -509,7 +509,7 @@ class Game {
 		// post-draw outcome of the hand
 		this.finalOutcome = this.finalHand.getOutcome();
 		let payout = this.finalHand.getPayout(); 
-
+		
 		this.screen.drawState(this.roundCount, this.finalHand, this.finalOutcome, 
 			this.credit, payout);
 			
@@ -552,5 +552,5 @@ class Game {
 	}
 }
 
-const myGame = new Game("standard");
+const myGame = new Game();
 
