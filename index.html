@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title></title>
+    <title>The House Always Wins</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="style.css">
@@ -19,14 +19,12 @@
       <div class="verticalBar">
 
         <div class="buttonPanel">
-          <button class="actionButton newGame" onclick="myGame.newGame()">
-            New Game</button>
-          <button class="actionButton autoRound" disabled onclick="myGame.autoRound()">
-            Auto-Round</button>
-          <button class="actionButton autoGame" onclick="myGame.autoGame()">
-            Auto-Game</button>
+          <div class="autoholdDiv"><input type="checkbox" id="cbAutoHold">Auto-Hold</div>
+          <button class="actionButton speedGame" onclick="myGame.speedGame()">
+            SpeedGame</button>
           <button class="actionButton instaGame" onclick="myGame.instaGame()">
-            Insta-Game</button>
+            InstaGame</button>
+          <button class="actionButton" disabled>InftyMode</button>
         </div>
 
         <div class="display round topPanel">ROUND</div>
@@ -112,9 +110,13 @@
 
       <!--bottom bar-->
       <div class="verticalBar">
+
         <div class="buttonPanel">
+          <button class="actionButton newGame" onclick="myGame.newGame('standard')">
+            New Game</button>
+          <button class="actionButton exit hidden" onclick="myGame.gameOver()">
+            Exit</button>
           <button class="actionButton deal" disabled onclick="myGame.deal()">Deal</button>
-          <button class="actionButton autoHold" disabled onclick="myGame.autoHold()">Auto-Hold</button>
           <button class="actionButton draw" disabled onclick="myGame.draw()">Draw</button>
           <button class="actionButton" disabled>XXX</button>
           <button class="actionButton" disabled>YYY</button>

@@ -114,6 +114,12 @@ class Hand {
 			} else { return "straight"; } 
 		} 
 
+		// CASE 3: check for flush 
+		if(this.containsFlush()) { 
+			this.holdsPostSorting = [1,2,3,4,5];
+			return "flush";
+		}
+
 		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
 		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
 		switch(delta0) { 
@@ -139,11 +145,6 @@ class Hand {
 				return this.holdsPostSorting.length > 0 ? "high card" : "none";
 		}
 
-		// CASE 3: check for flush 
-		if(this.containsFlush()) { 
-			this.holdsPostSorting = [1,2,3,4,5];
-			return "flush";
-		}
 
 		// CASE 4: not a paying outcome
 		return "none";
@@ -228,6 +229,8 @@ class ElementHandler {
 
 	addClass(className) { this.handler.classList.add(className); return this; }
 	removeClass(className) { this.handler.classList.remove(className); return this; }
+	hide() { this.addClass("hidden"); }
+	show() { this.removeClass("hidden"); }
 }
 /*---------------------------------------------------------------------------------------*/
 class ButtonHandler extends ElementHandler {
@@ -240,8 +243,6 @@ class ButtonHandler extends ElementHandler {
 class DisplayHandler extends ElementHandler {
 	constructor(selector) { super(selector); }
 
-	hide() { this.addClass("hidden"); }
-	show() { this.removeClass("hidden"); }
 	addContent(content) { this.handler.innerHTML += content; }
 	replaceContent(content) { this.handler.innerHTML = content; }
 	setFontColor(newColor) { (this.handler).style.color = newColor; }
@@ -251,18 +252,27 @@ class DisplayHandler extends ElementHandler {
 /*---------------------------------------------------------------------------------------*/
 class Screen {
 
+	// DISPLAY HANDLERS
+	creditDisplay = new DisplayHandler(".display.credit");
+	roundDisplay = new DisplayHandler(".display.round");
+	outcomeDisplay = new DisplayHandler(".display.result");
+	gameOverDisplay = new DisplayHandler(".gameOver");
+	welcomeDisplay = new DisplayHandler(".welcome");
+	infoPanel = new DisplayHandler(".infoPanel");
+	payboard = new DisplayHandler(".payoutBoard");
+	
+
 	// BUTTON HANDLERS
 	newGameButton = new ButtonHandler(".actionButton.newGame");
+	exitButton = new ButtonHandler(".actionButton.exit");
 	dealButton = new ButtonHandler(".actionButton.deal");
 	drawButton = new ButtonHandler(".actionButton.draw");
 	holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
-	autoHoldButton = new ButtonHandler(".actionButton.autoHold");
-	autoRoundButton = new ButtonHandler(".actionButton.autoRound");
-	autoGameButton = new ButtonHandler(".actionButton.autoGame");
+	speedGameButton = new ButtonHandler(".actionButton.speedGame");
+	instaGameButton = new ButtonHandler(".actionButton.instaGame");
 
 	// COLORS
 	winningColor ="lightgreen";
-	//losingColor = "lightcoral";
 	losingColor = "whitesmoke";
 
 
@@ -271,17 +281,14 @@ class Screen {
 	newGameState() {
 		this.hideStats();
 
-		let creditDisplay = new DisplayHandler(".display.credit");
-		creditDisplay.replaceContent("Credit: 10");
-		creditDisplay.setFontColor("white");
-
-		let roundDisplay = new DisplayHandler(".display.round");
-		roundDisplay.replaceContent("Round " + 0); 
+		this.creditDisplay.replaceContent("Credit: 10");
+		this.creditDisplay.setFontColor("white");
+		this.roundDisplay.replaceContent("Round " + 0); 
 
 		// toggle buttons
-		this.newGameButton.disable();
-		this.autoGameButton.disable();
-		this.autoRoundButton.enable();
+		this.newGameButton.hide();
+		this.exitButton.show();
+		this.speedGameButton.disable();
 		this.dealButton.enable();
 	
 		// reset card panel
@@ -300,25 +307,18 @@ class Screen {
 
 	dealState(roundCount, credit, hand, outcome) {
 
-		let creditDisplay = new DisplayHandler(".display.credit");
-		creditDisplay.replaceContent( "Credit: " + credit);
-		creditDisplay.setFontColor("white");
-		creditDisplay.replaceClass("draw", "deal"); 
-
-		let roundDisplay = new DisplayHandler(".display.round");
-		roundDisplay.replaceContent("Round " + roundCount);
-
-		let outcomeDisplay = new DisplayHandler(".display.result"); 
-		outcomeDisplay.replaceContent(outcome.toUpperCase());
-		outcomeDisplay.setFontColor(Game.winningOutcomes.includes(outcome) ? 
+		this.creditDisplay.replaceContent( "Credit: " + credit);
+		this.creditDisplay.setFontColor("white");
+		this.creditDisplay.replaceClass("draw", "deal"); 
+		this.roundDisplay.replaceContent("Round " + roundCount);
+		this.outcomeDisplay.replaceContent(outcome.toUpperCase());
+		this.outcomeDisplay.setFontColor(Game.winningOutcomes.includes(outcome) ? 
 										this.winningColor : this.losingColor);
-		outcomeDisplay.replaceClass("draw", "deal");
+		this.outcomeDisplay.replaceClass("draw", "deal");
 	
 		// toggle buttons
 		this.dealButton.disable();
-		this.autoHoldButton.enable();
 		this.drawButton.enable();
-		this.autoRoundButton.disable();
 		[1,2,3,4,5].forEach(i => this.enableHoldButton(i));
 		[1,2,3,4,5].forEach(i => this.unpressHoldButton(i));
 		[1,2,3,4,5].forEach(i => this.unholdCard(i));
@@ -338,24 +338,19 @@ class Screen {
 			divRight.classList.add("highlighted", "deal");
 		}
 	} 
-
+	
 	drawState(roundCount, hand, outcome, credit, payout) {
 
-		let creditDisplay = new DisplayHandler(".display.credit");
-		creditDisplay.replaceClass("deal", "draw");
-		creditDisplay.replaceContent("Credit: " + (credit+payout) + "   (+" + payout + ")");
-		creditDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
-	
-		let outcomeDisplay = new DisplayHandler(".display.result"); 
-		outcomeDisplay.replaceClass("deal", "draw");
-		outcomeDisplay.replaceContent(outcome.toUpperCase());
-		outcomeDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
+		this.creditDisplay.replaceClass("deal", "draw");
+		this.creditDisplay.replaceContent("Credit: " + (credit+payout) + "   (+" + payout + ")");
+		this.creditDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
+		this.outcomeDisplay.replaceClass("deal", "draw");
+		this.outcomeDisplay.replaceContent(outcome.toUpperCase());
+		this.outcomeDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
 
 		// toggle buttons
 		this.dealButton.enable();
-		this.autoHoldButton.disable();
 		this.drawButton.disable();
-		this.autoRoundButton.enable();
 		[1,2,3,4,5].forEach(i => this.disableHoldButton(i));
 
 		// display each card
@@ -378,19 +373,18 @@ class Screen {
 	} 
 
 	gameOverState(roundCount) {
-		new DisplayHandler(".payoutBoard").hide();
+		this.payboard.hide();
 		
-		let gameOverDisplay = new DisplayHandler(".gameOver");
-		gameOverDisplay.show();
-		gameOverDisplay.replaceContent( 
+		this.gameOverDisplay.show();
+		this.gameOverDisplay.replaceContent( 
 			"<b>GAME OVER</b><br>You survived " + roundCount + " rounds" +
 			"<br>Remember: The house always wins...");
 
 		// toggle buttons
-		this.newGameButton.enable();
+		this.newGameButton.show();
+		this.exitButton.hide();
 		this.dealButton.disable();
-		this.autoRoundButton.disable();
-		this.autoGameButton.enable();
+		this.speedGameButton.enable();
 		
 		this.showStats();
 	}
@@ -442,6 +436,7 @@ class Screen {
 
 class Game {
 
+	mode;
 	screen;
 	credit;
 	roundCount;
@@ -461,6 +456,7 @@ class Game {
 	
 
 	newGame() {
+	
 		this.screen = new Screen();
 		this.creditHistory = [];
 
@@ -483,7 +479,9 @@ class Game {
 		this.screen.dealState(this.roundCount, this.credit, this.initHand, this.initOutcome);
 
 		// auto hold
-		//this.initHand.suggestedHolds().forEach(i => this.hold(i));
+		if(document.querySelector("#cbAutoHold").checked) {
+			this.initHand.suggestedHolds().forEach(i => this.hold(i));
+		}
 	} 
 
 	hold(i) {
@@ -498,8 +496,6 @@ class Game {
 		}
 	} 
 
-	autoHold() { this.initHand.suggestedHolds().forEach(i => this.hold(i)); }
-
 	draw() {
 	
 		// create new hand
@@ -513,11 +509,13 @@ class Game {
 		// post-draw outcome of the hand
 		this.finalOutcome = this.finalHand.getOutcome();
 		let payout = this.finalHand.getPayout(); 
+
 		this.screen.drawState(this.roundCount, this.finalHand, this.finalOutcome, 
-								this.credit, payout);
-	
+			this.credit, payout);
+			
 		this.credit += payout;
 		this.creditHistory.push(this.credit);
+
 	
 		if(this.credit === 0 && payout === 0) { this.gameOver(); }
 	}
@@ -531,32 +529,28 @@ class Game {
 
 	showStats() {}
 
-	autoRound() {
-		this.deal();
-		setTimeout(() => {this.autoHold();}, 500);
-		setTimeout(() => {this.draw();}, 1000);
+	autoRound(m,n) {
+		setTimeout(() => {this.deal();}, m);
+		setTimeout(() => {this.draw();}, n);
 	} 
 
-	autoGame() {
+	speedGame() {
 		this.newGame();
-		
 		let myId = setInterval(() => {
 			if(this.credit !== 0) {
-				this.autoRound();
+				this.autoRound(0,50);
 			} else { clearInterval(myId); }
-		}, 2000 );
+		}, 100 );
 	}
 
 	instaGame() {
 		this.newGame();
-
 		while(this.credit !== 0) {
 			this.deal();
-			this.autoHold();
 			this.draw();
 		}
 	}
 }
 
-const myGame = new Game();
+const myGame = new Game("standard");
 

@@ -200,6 +200,10 @@
   border-color: teal;
 }
 
+.autoholdDiv {
+  line-height: 45px;
+}
+
 .display.result {
   width: 250px;
 }
