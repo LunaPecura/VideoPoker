@@ -309,14 +309,21 @@ class Log extends DisplayList {
 		rowDisplay.update(content, fontColor, state);
 	}
 }
-class Paytable extends DisplayList {
+/*---------------------------------------------------------------------------------------*/
+class Container extends Element {
 
 }
+/*---------------------------------------------------------------------------------------*/
+class Paytable extends DisplayList {  }
 /*---------------------------------------------------------------------------------------*/
 class Screen {
 	mode;
 
 	constructor(mode) { this.mode = mode; }
+
+	// CONTAINERS
+	topContainer = new Container(".topContainer");
+	bottomContainer = new Container(".bottomContainer");
 
 	// DISPLAYS
 	creditDisplay = new Display(".display.credit");
@@ -325,11 +332,10 @@ class Screen {
 	cardDisplays = [1,2,3,4,5].map(i => new CardDisplay("#cardDisplay" + i, i));
 	log = new Log(".displayLog");
 	stats = new DisplayList(".stats");
-	statsDisplay = new Element(".showStatsDiv");
+	statsDisplay = new Element(".statsDiv");
 // ----------------------------------------------------
 	gameOverDisplay = new Display(".gameOver");
 	welcomeDisplay = new Display(".welcome");
-	infoPanel = new Display(".infoPanel");
 	payboard = new DisplayList(".payoutBoard");
 	cardPanel = new Element(".cardPanel");
 
@@ -350,11 +356,17 @@ class Screen {
 /* STATES *************************************************************************************/
 
 	newGameState() {
-		this.statsDisplay.hide();
 
-		this.creditDisplay.replaceContent("Credit: 10");
-		this.creditDisplay.setFontColor("white");
-		this.roundDisplay.replaceContent("Round " + 0); 
+		// top container
+		this.welcomeDisplay.hide();
+		this.gameOverDisplay.hide();
+		this.payboard.show();
+		this.log.show();
+		this.log.clear();
+		this.clearPayoutBoard(); // TODO
+
+		this.creditDisplay.update("Credit: 10", "white", "n/a");
+		this.roundDisplay.update("Round 0", "white", "n/a"); 
 		this.outcomeDisplay.clear();
 
 		// toggle buttons
@@ -366,26 +378,22 @@ class Screen {
 		this.mode === "standard" ? this.dealButton.enable() : 
 									this.dealButton.disable();
 
-		// reset card panel
-		if(this.mode !== "insta") {
+		// bottom container
+		if(this.mode === "insta") {
+			this.cardPanel.hide();
+			this.statsDisplay.show();
+		} else {
+			this.statsDisplay.hide();
+			this.cardPanel.show();
 			this.cardDisplays.forEach(cd => cd.clear());
 			this.holdButtons.forEach(hb => hb.unpress());
-		} else if (document.querySelector(".cardPanel") !== null) { 
-			document.querySelector(".cardPanel").replaceWith(document.querySelector(".statsDiv")) 
 		}
-
-		// clear screen
-		this.gameOverDisplay.hide();
-		this.welcomeDisplay.hide();
-		this.infoPanel.show();
-		this.payboard.show();
-		this.log.clear();
-		this.clearPayoutBoard(); // TODO
 	}
 
 	dealState(roundCount, credit, hand, outcome) {
 		let fontColor = Game.winningOutcomes.includes(outcome) ? this.winningColor : this.losingColor;
 
+		// top container
 		this.creditDisplay.update("Credit: " + credit, "white", "deal");
 		this.roundDisplay.update("Round " + roundCount, "white", "any");
 		this.outcomeDisplay.update(outcome.toUpperCase(), fontColor, "deal");
@@ -397,34 +405,19 @@ class Screen {
 			this.drawButton.enable();
 		}
 
-		// prepare card panel
-		if(this.mode !== "insta") {
-			if(document.querySelector(".cardPanel") !== null) { 
-				this.cardPanel.show(); 
-			}
-			else {
-				document.querySelector(".statsDiv").replaceWith(document.querySelector(".cardPanel"));
-			} 
-		} else if(document.querySelector(".cardPanel") !== null) {
-			document.querySelector(".cardPanel").replaceWith(document.querySelector(".statsDiv"));
-		}
-/**document.querySelector(".cardPanel") !== null) { 
-			document.querySelector(".cardPanel").replaceWith(document.querySelector(".statsDiv") */
-
-		this.mode !== "insta" ? this.cardPanel.show() : this.cardPanel.hide();
-		this.holdButtons.forEach(hb => { hb.enable(); hb.unpress(); });
-		this.cardDisplays.forEach(cd => cd.unpress());
-	
-		// display cards
-		this.cardDisplays.forEach(cd => {
-			let cardColor = (hand.getCard(cd.slotID)).isRed() ? "darkred" : "black";
-			cd.update(hand.getCard(cd.slotID).toString(), cardColor, "any");
-		})
+		// bottom container
+			this.holdButtons.forEach(hb => { hb.enable(); hb.unpress(); });
+			this.cardDisplays.forEach(cd => cd.unpress());
+			this.cardDisplays.forEach(cd => {
+				let cardColor = (hand.getCard(cd.slotID)).isRed() ? "darkred" : "black";
+				cd.update(hand.getCard(cd.slotID).toString(), cardColor, "any");
+			})
 	} 
 
 	drawState(roundCount, hand, outcome, credit, payout) {
 		let fontColor = payout > 0 ? this.winningColor : this.losingColor;
 
+		// top container
 		let content = (this.mode === "speed" ? `Credit: ${credit+payout}` :
 									`Credit: ${credit+payout}   (+${payout})`);
 		this.creditDisplay.update(content, fontColor, "draw");
@@ -443,13 +436,14 @@ class Screen {
 			this.drawButton.disable();
 		}
 		
-		this.holdButtons.forEach(hb => hb.disable());
-
-		// display cards
-		this.cardDisplays.forEach(cd => {
-			let cardColor = hand.getCard(cd.slotID).isRed() ? "darkred" : "black";
-			cd.update(hand.getCard(cd.slotID).toString(), cardColor, "any");
-		})
+		// bottom container
+		if(this.mode !== "insta") {
+			this.holdButtons.forEach(hb => hb.disable());
+			this.cardDisplays.forEach(cd => {
+				let cardColor = hand.getCard(cd.slotID).isRed() ? "darkred" : "black";
+				cd.update(hand.getCard(cd.slotID).toString(), cardColor, "any");
+			})
+		}
 	} 
 
 	gameOverState(roundCount) {
@@ -607,8 +601,6 @@ class Game {
 		this.screen.gameOverState(this.roundCount);
 	} 
 
-	showStats() {}
-
 	autoRound(m,n) {
 		setTimeout(() => {this.deal();}, m);
 		setTimeout(() => {this.draw();}, n);
@@ -630,7 +622,13 @@ class Game {
 		while(this.credit !== 0) {
 			this.deal();
 			this.draw();
-		}
+		} 
+
+		/* let myId = setInterval(() => {
+			if(this.credit !== 0) {
+				this.autoRound(0,10);
+			} else { clearInterval(myId); }
+		}, 20 ); */
 	}
 }
 

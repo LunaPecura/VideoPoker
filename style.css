@@ -1,5 +1,53 @@
+/* CONTAINERS  **************************************************************************/
 
-/* COMMONS  **************************************************************************/
+.mainContainer {
+  width: 800px;
+/*   height: 575px; */
+  border: solid black;
+}
+
+.topContainer {
+  display: flex;
+  /* height: 205px; */
+  width: 794px;
+  border: solid greenyellow;
+}
+
+.bottomContainer {
+  display: block;
+  width: 794px;
+  /* height: 205px; */
+  border: solid cyan;
+}
+
+
+/* PANELS  **************************************************************************/
+
+.cardPanel {
+  display: flex;
+  width: 788px;
+  border: solid lightseagreen;
+}
+
+.verticalBar {
+  display: flex;
+  justify-content: space-between;
+  height: 48px;
+  width: 794px;
+  background-color: black;
+  color: whitesmoke;
+  border: solid orchid;
+}
+
+.buttonPanel {
+  display: flex;
+  justify-content: space-evenly;
+  border: solid purple;
+  width: 550px;
+}
+
+
+/* DISPLAYS  **************************************************************************/
 
 .display {
   height: 22px;
@@ -18,39 +66,6 @@
   font-weight: 900;
 }
 
-.verticalBar {
-  display: flex;
-  justify-content: space-between;
-  height: 48px;
-  width: 794px;
-  background-color: black;
-  color: whitesmoke;
-  border: solid orchid;
-}
-
-.actionButton { 
-  padding: 5px;
-  width: 100px;
-  margin: 5px;
-  font-weight: 900;
-}
-
-.buttonPanel {
-  display: flex;
-  justify-content: space-evenly;
-  border: solid purple;
-  width: 550px;
-}
-
-
-/***************************************************************************************/
-
-.mainContainer {
-  width: 800px;
-/*   height: 575px; */
-  border: solid black;
-}
-
 .display.credit {
   width: 150px;
 }
@@ -59,59 +74,64 @@
   width: 150px;
 }
 
-.infoPanel {
-  display: flex;
-  height: 205px;
-  width: 794px;
-  border: solid greenyellow;
+.display.outcome {
+  width: 250px;
 }
+
+.cardDisplay {
+  height: 205px;
+  font-size: 75px;
+  font-weight: 900;
+  line-height: 200px;
+  text-align: center;
+  color: black;
+  border: 2px solid whitesmoke;
+  background-color: whitesmoke;
+  border-radius: 10px;
+}
+
+.cardDisplay.onHold {
+  border-color: teal;
+}
+
+
+/* BUTTONS  **************************************************************************/
+
+.actionButton { 
+  padding: 5px;
+  width: 100px;
+  margin: 5px;
+  font-weight: 900;
+}
+
+.holdButton {
+  width: 100%;
+  height: 35px;
+  color: black;
+  border: solid lightgray;
+  background-color: lightgray;
+  margin-bottom: 5px;
+}
+
+.holdButton.pressed {
+  background-color: lightseagreen;
+  color: black;
+  border: solid teal;
+  font-weight: 900;
+}
+
+.holdButton:disabled {
+  color: gray;
+}
+
+
+/* PAY TABLE  **************************************************************************/
 
 .payoutBoard {
   display: flex;
   height: 200px;
-  width: 66%;
+  width: 49%;
   border: solid limegreen;
-}
-
-.displayLog {
-  display: block;
-  width: 33%;
-  height: 190px;
-  background-color: black;
-  color: white;
-  font-family: "Courier New";
-  padding: 5px;
-  overflow-y: auto;
-  border: solid limegreen;
-}
-
-.displayLogRow {
-  height: 12px;
-  line-height: 12px;
-  font-size: 11px;
-}
-
-.welcome {
-  height: 205px;
-  width: 794px;
-  background-color: black;
-  font-size: 30px;
-  line-height: 60px;
-  text-align: center;
-  color: whitesmoke;
-  border: solid greenyellow;
-}
-
-.gameOver {
-  display: block;
-  height: 200px;
-  width: 66%;
-  font-size: 30px;
-  line-height: 60px;
-  text-align: center;
-  color: lightcoral;
-  border: solid lightcoral;
-  background-color: black;
 }
 
 .payoutCol {
@@ -152,11 +172,56 @@
   padding-left: 5px;
 }
 
-.cardPanel {
-  display: flex;
-  width: 794px;
-  border: solid lightseagreen;
+
+/* GAME LOG  **************************************************************************/
+
+.displayLog {
+  display: block;
+  width: 49%;
+  height: 190px;
+  background-color: black;
+  color: white;
+  font-family: "Courier New";
+  padding: 5px;
+  overflow-y: auto;
+  border: solid limegreen;
 }
+
+.displayLogRow {
+  height: 12px;
+  line-height: 12px;
+  font-size: 11px;
+}
+
+
+/* MESSAGES  **************************************************************************/
+
+.welcome {
+  height: 205px;
+  width: 794px;
+  background-color: black;
+  font-size: 30px;
+  line-height: 60px;
+  text-align: center;
+  color: whitesmoke;
+  border: solid orange;
+}
+
+.gameOver {
+  display: block;
+  height: 180px;
+  width: 49%;
+  font-size: 30px;
+  line-height: 40px;
+  text-align: center;
+  color: lightcoral;
+  border: solid lightcoral;
+  background-color: black;
+  padding: 10px;
+}
+
+
+/* MISC  **************************************************************************/
 
 .cardDiv {
   width: 20%;
@@ -164,60 +229,13 @@
   background-color: teal;
 }
 
-.holdButton {
-  width: 100%;
-  height: 35px;
-  color: black;
-  border: solid lightgray;
-  background-color: lightgray;
-  margin-bottom: 5px;
-}
-
-.holdButton.pressed {
-  background-color: lightseagreen;
-  color: black;
-  border: solid teal;
-  font-weight: 900;
-}
-
-.holdButton:disabled {
-  color: gray;
-}
-
-.cardDisplay {
-  height: 205px;
-  font-size: 75px;
-  font-weight: 900;
-  line-height: 200px;
-  text-align: center;
-  color: black;
-  border: 2px solid whitesmoke;
-  background-color: whitesmoke;
-  border-radius: 10px;
-}
-
-.cardDisplay.onHold {
-  border-color: teal;
-}
-
 .checkboxDiv {
   line-height: 45px;
 }
 
-.display.outcome {
-  width: 250px;
-}
-
-.showStatsDiv {
-  border: solid darkblue;
-  width: 800px;
-  margin-top: 25px;
-  text-align: right;
-}
-
 .statsDiv {
   border: solid slateblue;
-  width: 794px;
+  width: 788px;
   text-align: center;
 }
 
@@ -225,7 +243,7 @@
   display: block;
   border: 0.2px solid black;
   padding: 10px;
-  width: 772px;
+  width: 766px;
   font-size: 12px;
   line-height: 6px;
   overflow-x: auto;

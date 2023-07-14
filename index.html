@@ -12,18 +12,16 @@
   <body>
     <script src="app.js" async defer></script>
 
+
+
     <div class="mainContainer">
 
-
       <!--top bar FLEX-->
-      <div class="verticalBar">
+      <div class="verticalBar" id="topBar">
 
         <div class="buttonPanel">
-          
-          <button class="actionButton speedGame" onclick="myGame.speedGame()">
-            SpeedGame</button>
-          <button class="actionButton instaGame" onclick="myGame.instaGame()">
-            InstaGame</button>
+          <button class="actionButton speedGame" onclick="myGame.speedGame()">SpeedGame</button>
+          <button class="actionButton instaGame" onclick="myGame.instaGame()">InstaGame</button>
           <button class="actionButton" disabled>InftyMode</button>
           <button class="actionButton" disabled>XXX</button>
         </div>
@@ -33,13 +31,14 @@
       </div> <!--end of top bar-->
 
 
-      <div class="welcome">WELCOME</div>  
-      <div class="infoPanel hidden">
+      <!--top container-->
+      <div class="topContainer">
+
+        <div class="welcome">WELCOME</div>  
         <div class="gameOver hidden"></div>
 
-        
         <!--payout board FLEX (9 rows each)-->
-        <div class="payoutBoard">
+        <div class="payoutBoard hidden">
 
           <!--column 1: winning outcomes-->
           <div class="payoutCol left">
@@ -66,57 +65,61 @@
             <div class="payoutElement right" id="twoPairPayout">2</div>
             <div class="payoutElement right" id="jacksOrBetterPayout">1</div>
           </div>
-
         </div> <!--end of payout board-->
 
-        <div class="displayLog"></div>
-      </div> <!--end of info panel-->
+        <div class="displayLog hidden"></div>
+      </div> <!--end of topContainer-->
 
 
-      <!--card panel FLEX-->
-      <div class="cardPanel">
+      <div class="bottomContainer">
 
-        <!--card 1-->
-        <div class="cardDiv" id="cardDiv1">
-          <button class="holdButton" id="holdButton1" disabled onclick="myGame.hold(1)">Hold</button>
-          <div class="cardDisplay" id="cardDisplay1"></div>
+        <div class="statsDiv hidden">
+          <h3>Credit over time (rounds):</h3>
+          <div class="stats"></div>
         </div>
 
-        <!--card 2-->
-        <div class="cardDiv" id="cardDiv2">
-          <button class="holdButton" id="holdButton2" disabled onclick="myGame.hold(2)">Hold</button>
-          <div class="cardDisplay" id="cardDisplay2"></div>
-        </div>
+        <div class="cardPanel">
 
-        <!--card 3-->
-        <div class="cardDiv" id="cardDiv3">
-          <button class="holdButton" id="holdButton3" disabled onclick="myGame.hold(3)">Hold</button>
-          <div class="cardDisplay" id="cardDisplay3"></div>
-        </div>
+          <!--card 1-->
+          <div class="cardDiv" id="cardDiv1">
+            <button class="holdButton" id="holdButton1" disabled onclick="myGame.hold(1)">Hold</button>
+            <div class="cardDisplay" id="cardDisplay1"></div>
+          </div>
 
-        <!--card 4-->
-        <div class="cardDiv" id="cardDiv4">
-          <button class="holdButton" id="holdButton4" disabled onclick="myGame.hold(4)">Hold</button>
-          <div class="cardDisplay" id="cardDisplay4"></div>
-        </div>
+          <!--card 2-->
+          <div class="cardDiv" id="cardDiv2">
+            <button class="holdButton" id="holdButton2" disabled onclick="myGame.hold(2)">Hold</button>
+            <div class="cardDisplay" id="cardDisplay2"></div>
+          </div>
 
-        <!--card 5-->
-        <div class="cardDiv" id="cardDiv5">
-          <button class="holdButton" id="holdButton5" disabled onclick="myGame.hold(5)">Hold</button>
-          <div class="cardDisplay" id="cardDisplay5"></div>
-        </div>
+          <!--card 3-->
+          <div class="cardDiv" id="cardDiv3">
+            <button class="holdButton" id="holdButton3" disabled onclick="myGame.hold(3)">Hold</button>
+            <div class="cardDisplay" id="cardDisplay3"></div>
+          </div>
 
-      </div> <!--END OF CARD PANEL-->
+          <!--card 4-->
+          <div class="cardDiv" id="cardDiv4">
+            <button class="holdButton" id="holdButton4" disabled onclick="myGame.hold(4)">Hold</button>
+            <div class="cardDisplay" id="cardDisplay4"></div>
+          </div>
+
+          <!--card 5-->
+          <div class="cardDiv" id="cardDiv5">
+            <button class="holdButton" id="holdButton5" disabled onclick="myGame.hold(5)">Hold</button>
+            <div class="cardDisplay" id="cardDisplay5"></div>
+          </div>
+
+        </div> <!--end of cardPanel-->
+      </div> <!--end of bottomContainer-->
 
 
       <!--bottom bar-->
-      <div class="verticalBar">
+      <div class="verticalBar" id="bottomBar">
 
         <div class="buttonPanel">
-          <button class="actionButton newGame" onclick="myGame.newGame('standard')">
-            New Game</button>
-          <button class="actionButton exit hidden" onclick="myGame.exit()">
-            Exit</button>
+          <button class="actionButton newGame" onclick="myGame.newGame('standard')">New Game</button>
+          <button class="actionButton exit hidden" onclick="myGame.exit()">Exit</button>
           <button class="actionButton deal" disabled onclick="myGame.deal()">Deal</button>
           <button class="actionButton draw" disabled onclick="myGame.draw()">Draw</button>
           <div class="checkboxDiv"><input type="checkbox" id="cbAutoHold">Hold</div>
@@ -124,16 +127,11 @@
         </div>
         
         <div class="display outcome">OUTCOME</div>
-      </div>
+      </div> <!--end of bottomBar-->
 
-    </div> <!--END OF MAIN CONTAINER-->
+    </div> <!--end of mainContainer-->
     
-    <div class="showStatsDiv hidden">Show Stats 
-      <div class="statsDiv">
-        <h4>Credit over time (rounds):</h4>
-        <div class="stats"></div>
-      </div>
-    </div>
+    
 
 
   </body>
