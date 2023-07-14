@@ -114,13 +114,13 @@ class Hand {
 			} else { return "straight"; } 
 		} 
 
-		// CASE 3: check for flush 
+		// CASE 2: flush 
 		if(this.containsFlush()) { 
 			this.holdsPostSorting = [1,2,3,4,5];
 			return "flush";
 		}
 
-		// CASE 2A - 2C: result involves multiples (Q, H, T, PP, HP. LP)
+		// CASE 3A - 3C: outcome involves multiples (Q, H, T, PP, HP. LP)
 		let delta0 = deltas.map(d => (d===0) ? "0" : "x").reduce((s1,s2) => s1+s2);
 		switch(delta0) { 
 			case "x000": this.holdsPostSorting = [2,3,4,5]; return "four of a kind";
@@ -145,10 +145,8 @@ class Hand {
 				return this.holdsPostSorting.length > 0 ? "high card" : "none";
 		}
 
-
 		// CASE 4: not a paying outcome
 		return "none";
-
 	} // END OF getOutcome()
 
 	getPayout() {
@@ -169,7 +167,7 @@ class Hand {
 		}
 	}
 
-	/*** helper function for determining result */
+	/*** helper function for determining outcome */
 	/*** returns the array of "steps" through the sorted rank array */
 	deltaArray() {
 		let sortedRanks = this.sortByRank().getRankArray();
@@ -179,7 +177,7 @@ class Hand {
 		return deltaArray;
 	}
 
-	/*** helper function for determining result */
+	/*** helper function for determining outcome */
 	containsFlush() {
 		return this.suits.map(suit => suit === this.suits[0]).
 							reduce((p,q) => p && q);
@@ -192,7 +190,7 @@ class Hand {
 	}
 
 	
-} // END OF CLASS "Hand"
+}
 /*---------------------------------------------------------------------------------------*/
 class Deck {
 	cards = [];
@@ -215,61 +213,134 @@ class Deck {
 	dealHand() { return new Hand([1,2,3,4,5].map(i => this.drawCard())); }
 	currentSize() { return this.cards.length; }
 
-
 }
 /*---------------------------------------------------------------------------------------*/
-class ElementHandler {
+class Element {
 	selector;
-	handler;
+	element;
 	
 	constructor(selector) {
 		this.selector = selector;
-		this.handler = document.querySelector(this.selector); 
+		this.element = document.querySelector(this.selector); 
 	}
 
-	addClass(className) { this.handler.classList.add(className); return this; }
-	removeClass(className) { this.handler.classList.remove(className); return this; }
+	addClass(className) { this.element.classList.add(className); return this; }
+	removeClass(className) { this.element.classList.remove(className); return this; }
+	replaceClass(class1, class2) { this.addClass(class2).removeClass(class1); }
 	hide() { this.addClass("hidden"); }
 	show() { this.removeClass("hidden"); }
+	clear() { this.element.innerHTML = ""; }
 }
 /*---------------------------------------------------------------------------------------*/
-class ButtonHandler extends ElementHandler {
+class Button extends Element {
 	constructor(selector) { super(selector); }
 
-	enable() { this.handler.removeAttribute("disabled"); }
-	disable() { this.handler.setAttribute("disabled", true); }
+	enable() { this.element.removeAttribute("disabled"); }
+	disable() { this.element.setAttribute("disabled", true); }
 } 
 /*---------------------------------------------------------------------------------------*/
-class DisplayHandler extends ElementHandler {
+class ActionButton extends Button {
+
+}
+/*---------------------------------------------------------------------------------------*/
+class HoldButton extends Button {
+
+	press() { this.addClass("pressed"); }
+	unpress() { this.removeClass("pressed"); }
+	isPressed() { return this.element.classList.contains("pressed"); }
+}
+/*---------------------------------------------------------------------------------------*/
+class Display extends Element {
 	constructor(selector) { super(selector); }
 
-	addContent(content) { this.handler.innerHTML += content; }
-	replaceContent(content) { this.handler.innerHTML = content; }
-	setFontColor(newColor) { (this.handler).style.color = newColor; }
-	replaceClass(class1, class2) { this.addClass(class2).removeClass(class1); } // !
-	enableScroll() { this.handler.scrollTop = this.handler.scrollHeight; }
+	update(content, fontColor, state) {
+		this.replaceContent(content);
+		this.setFontColor(fontColor);
+		switch(state) {
+			case "deal": this.replaceClass("draw", "deal"); break;
+			case "draw": this.replaceClass("deal", "draw"); break;
+			default: break;
+		}
+	}
+
+	addContent(content) { this.element.innerHTML += content; }
+	replaceContent(content) { this.element.innerHTML = content; }
+	setFontColor(newColor) { this.element.style.color = newColor; }
+	clear() { this.element.innerHTML = " "; }
 } 
+/*---------------------------------------------------------------------------------------*/
+class CardDisplay extends Display {
+	slotID; // int in {1,...,5}
+
+	constructor(selector, slotID) { 
+		super(selector);
+		this.slotID = slotID;
+	}
+
+	update(content, fontColor, state) {
+		this.replaceContent(content);
+		this.setFontColor(fontColor);
+	}
+
+	press() { this.addClass("onHold"); }
+	unpress() { this.removeClass("onHold"); }
+}
+/*---------------------------------------------------------------------------------------*/
+class DisplayList extends Element {
+	constructor(selector) { super(selector); }
+
+	makeRow(className, idName) {
+		let rowElement = document.createElement("div");
+		rowElement.setAttribute("class", className);
+		rowElement.setAttribute("id", idName);
+		return rowElement;
+	}
+
+	addElement(newElement) { this.element.appendChild(newElement); }
+	enableScroll() { this.element.scrollTop = this.element.scrollHeight; }
+}
+/*---------------------------------------------------------------------------------------*/
+class Log extends DisplayList {
+	constructor(selector) { super(selector); }
+
+	update(rowElement, content, fontColor, state) { 
+		this.addElement(rowElement);
+		let rowDisplay = new Display("#" + rowElement.getAttribute("id"));
+		rowDisplay.update(content, fontColor, state);
+	}
+}
+class Paytable extends DisplayList {
+
+}
 /*---------------------------------------------------------------------------------------*/
 class Screen {
+	mode;
 
-	// DISPLAY HANDLERS
-	creditDisplay = new DisplayHandler(".display.credit");
-	roundDisplay = new DisplayHandler(".display.round");
-	outcomeDisplay = new DisplayHandler(".display.result");
-	gameOverDisplay = new DisplayHandler(".gameOver");
-	welcomeDisplay = new DisplayHandler(".welcome");
-	infoPanel = new DisplayHandler(".infoPanel");
-	payboard = new DisplayHandler(".payoutBoard");
-	
+	constructor(mode) { this.mode = mode; }
 
-	// BUTTON HANDLERS
-	newGameButton = new ButtonHandler(".actionButton.newGame");
-	exitButton = new ButtonHandler(".actionButton.exit");
-	dealButton = new ButtonHandler(".actionButton.deal");
-	drawButton = new ButtonHandler(".actionButton.draw");
-	holdButtons = [1,2,3,4,5].map(i => new ButtonHandler("#holdButton" + i));
-	speedGameButton = new ButtonHandler(".actionButton.speedGame");
-	instaGameButton = new ButtonHandler(".actionButton.instaGame");
+	// DISPLAYS
+	creditDisplay = new Display(".display.credit");
+	roundDisplay = new Display(".display.round");
+	outcomeDisplay = new Display(".display.outcome");
+	cardDisplays = [1,2,3,4,5].map(i => new CardDisplay("#cardDisplay" + i, i));
+	log = new Log(".displayLog");
+	stats = new DisplayList(".stats");
+	statsDisplay = new Element(".showStatsDiv");
+// ----------------------------------------------------
+	gameOverDisplay = new Display(".gameOver");
+	welcomeDisplay = new Display(".welcome");
+	infoPanel = new Display(".infoPanel");
+	payboard = new DisplayList(".payoutBoard");
+	cardPanel = new Element(".cardPanel");
+
+	// BUTTONS
+	newGameButton = new Button(".actionButton.newGame");
+	exitButton = new Button(".actionButton.exit");
+	dealButton = new Button(".actionButton.deal");
+	drawButton = new Button(".actionButton.draw");
+	speedGameButton = new Button(".actionButton.speedGame");
+	instaGameButton = new Button(".actionButton.instaGame");
+	holdButtons = [1,2,3,4,5].map(i => new HoldButton("#holdButton" + i));
 
 	// COLORS
 	winningColor ="lightgreen";
@@ -279,97 +350,106 @@ class Screen {
 /* STATES *************************************************************************************/
 
 	newGameState() {
-		this.hideStats();
+		this.statsDisplay.hide();
 
 		this.creditDisplay.replaceContent("Credit: 10");
 		this.creditDisplay.setFontColor("white");
 		this.roundDisplay.replaceContent("Round " + 0); 
+		this.outcomeDisplay.clear();
 
 		// toggle buttons
 		this.newGameButton.hide();
 		this.exitButton.show();
-		this.speedGameButton.disable();
 		this.dealButton.enable();
-	
+		this.speedGameButton.disable();
+		this.instaGameButton.disable();
+		this.mode === "standard" ? this.dealButton.enable() : 
+									this.dealButton.disable();
+
 		// reset card panel
-		this.cardDisplaysClear();
-		[1,2,3,4,5].forEach(i => this.unholdCard(i));
-		[1,2,3,4,5].forEach(i => this.unpressHoldButton(i));
-	
+		if(this.mode !== "insta") {
+			this.cardDisplays.forEach(cd => cd.clear());
+			this.holdButtons.forEach(hb => hb.unpress());
+		} else if (document.querySelector(".cardPanel") !== null) { 
+			document.querySelector(".cardPanel").replaceWith(document.querySelector(".statsDiv")) 
+		}
+
 		// clear screen
 		this.gameOverDisplay.hide();
 		this.welcomeDisplay.hide();
 		this.infoPanel.show();
 		this.payboard.show();
-
-		this.clearLog();	
+		this.log.clear();
+		this.clearPayoutBoard(); // TODO
 	}
 
 	dealState(roundCount, credit, hand, outcome) {
+		let fontColor = Game.winningOutcomes.includes(outcome) ? this.winningColor : this.losingColor;
 
-		this.creditDisplay.replaceContent( "Credit: " + credit);
-		this.creditDisplay.setFontColor("white");
-		this.creditDisplay.replaceClass("draw", "deal"); 
-		this.roundDisplay.replaceContent("Round " + roundCount);
-		this.outcomeDisplay.replaceContent(outcome.toUpperCase());
-		this.outcomeDisplay.setFontColor(Game.winningOutcomes.includes(outcome) ? 
-										this.winningColor : this.losingColor);
-		this.outcomeDisplay.replaceClass("draw", "deal");
+		this.creditDisplay.update("Credit: " + credit, "white", "deal");
+		this.roundDisplay.update("Round " + roundCount, "white", "any");
+		this.outcomeDisplay.update(outcome.toUpperCase(), fontColor, "deal");
+		this.updatePayboard(outcome, "deal");
 	
 		// toggle buttons
-		this.dealButton.disable();
-		this.drawButton.enable();
-		[1,2,3,4,5].forEach(i => this.enableHoldButton(i));
-		[1,2,3,4,5].forEach(i => this.unpressHoldButton(i));
-		[1,2,3,4,5].forEach(i => this.unholdCard(i));
-	
-		// display each card
-		[1,2,3,4,5].forEach(i => this.displayCard(i, hand.getCard(i)));
-	
-		// remove previous highlights from payout board
-		document.querySelectorAll(".payoutElement")
-				.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
-
-		// highlight row according to outcome
-		if(Game.winningOutcomes.includes(outcome)) {
-			let divLeft = document.querySelector("#" + stringToCamelCase(outcome));
-			divLeft.classList.add("highlighted", "deal");
-			let divRight = document.querySelector("#" + stringToCamelCase(outcome) + "Payout");
-			divRight.classList.add("highlighted", "deal");
+		if(this.mode === "standard") {
+			this.dealButton.disable();
+			this.drawButton.enable();
 		}
+
+		// prepare card panel
+		if(this.mode !== "insta") {
+			if(document.querySelector(".cardPanel") !== null) { 
+				this.cardPanel.show(); 
+			}
+			else {
+				document.querySelector(".statsDiv").replaceWith(document.querySelector(".cardPanel"));
+			} 
+		} else if(document.querySelector(".cardPanel") !== null) {
+			document.querySelector(".cardPanel").replaceWith(document.querySelector(".statsDiv"));
+		}
+/**document.querySelector(".cardPanel") !== null) { 
+			document.querySelector(".cardPanel").replaceWith(document.querySelector(".statsDiv") */
+
+		this.mode !== "insta" ? this.cardPanel.show() : this.cardPanel.hide();
+		this.holdButtons.forEach(hb => { hb.enable(); hb.unpress(); });
+		this.cardDisplays.forEach(cd => cd.unpress());
+	
+		// display cards
+		this.cardDisplays.forEach(cd => {
+			let cardColor = (hand.getCard(cd.slotID)).isRed() ? "darkred" : "black";
+			cd.update(hand.getCard(cd.slotID).toString(), cardColor, "any");
+		})
 	} 
-	
-	drawState(roundCount, hand, outcome, credit, payout) {
 
-		this.creditDisplay.replaceClass("deal", "draw");
-		this.creditDisplay.replaceContent("Credit: " + (credit+payout) + "   (+" + payout + ")");
-		this.creditDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
-		this.outcomeDisplay.replaceClass("deal", "draw");
-		this.outcomeDisplay.replaceContent(outcome.toUpperCase());
-		this.outcomeDisplay.setFontColor(payout > 0 ? this.winningColor : this.losingColor);
+	drawState(roundCount, hand, outcome, credit, payout) {
+		let fontColor = payout > 0 ? this.winningColor : this.losingColor;
+
+		let content = (this.mode === "speed" ? `Credit: ${credit+payout}` :
+									`Credit: ${credit+payout}   (+${payout})`);
+		this.creditDisplay.update(content, fontColor, "draw");
+		this.outcomeDisplay.update(outcome.toUpperCase(), fontColor, "draw");
+		this.updatePayboard(outcome, "draw");
+
+		// update log
+		let rowElement = this.log.makeRow("displayLogRow", "row" + roundCount);
+		this.log.update(rowElement, `Round ${roundCount}: ${outcome}<br>`,
+						fontColor, "draw");
+		this.log.enableScroll();
 
 		// toggle buttons
-		this.dealButton.enable();
-		this.drawButton.disable();
-		[1,2,3,4,5].forEach(i => this.disableHoldButton(i));
-
-		// display each card
-		[1,2,3,4,5].forEach(i => this.displayCard(i, hand.getCard(i)));
-
-		// strip previous highlighting from payout board
-		document.querySelectorAll(".payoutElement")
-				.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
-
-		// highlight row according to outcome
-		if(Game.winningOutcomes.includes(outcome)) {
-			let divLeft = document.querySelector("#" + stringToCamelCase(outcome));
-			divLeft.classList.add("highlighted", "draw");
-			let divRight = document.querySelector("#" + stringToCamelCase(outcome) + "Payout");
-			divRight.classList.add("highlighted", "draw");
+		if(this.mode === "standard") {
+			this.dealButton.enable();
+			this.drawButton.disable();
 		}
-	
-		// update log
-		this.updateLog(roundCount, outcome);
+		
+		this.holdButtons.forEach(hb => hb.disable());
+
+		// display cards
+		this.cardDisplays.forEach(cd => {
+			let cardColor = hand.getCard(cd.slotID).isRed() ? "darkred" : "black";
+			cd.update(hand.getCard(cd.slotID).toString(), cardColor, "any");
+		})
 	} 
 
 	gameOverState(roundCount) {
@@ -384,50 +464,37 @@ class Screen {
 		this.newGameButton.show();
 		this.exitButton.hide();
 		this.dealButton.disable();
+		this.drawButton.disable();
 		this.speedGameButton.enable();
+		this.instaGameButton.enable();
 		
-		this.showStats();
+		this.statsDisplay.show();
 	}
 
 
 /* METHODS *************************************************************************************/
 
-	holdCard(i) { new DisplayHandler("#cardArea" + i).addClass("onHold"); }
-	unholdCard(i) { new DisplayHandler("#cardArea" + i).removeClass("onHold"); }
-	enableHoldButton(i) { this.holdButtons[i-1].enable(); }
-	disableHoldButton(i) { this.holdButtons[i-1].disable(); }
-	pressHoldButton(i) { this.holdButtons[i-1].addClass("pressed"); }
-	unpressHoldButton(i) { this.holdButtons[i-1].removeClass("pressed"); } 
-	clearLog() { document.querySelector(".displayLog").innerHTML = ""; }
-	showStats() { document.querySelector(".showStatsDiv").classList.remove("hidden"); }
-	hideStats() { document.querySelector(".showStatsDiv").classList.add("hidden"); }
 
-	displayCard(i, card) {
-		let cardDisplay = new DisplayHandler("#cardArea" + i);
-		cardDisplay.replaceContent(card.toString());
-		cardDisplay.setFontColor(card.isRed() ? "darkred" : "black");
+	getHolds() {
+		return new Set([1,2,3,4,5].filter(i => this.holdButtons[i-1].isPressed()));
 	}
 
-	cardDisplaysClear() {
-		for(let i=1; i<=5; i++) {
-			new DisplayHandler("#cardArea" + i).replaceContent(" ");
+	// strip previous highlighting from payout board
+	clearPayoutBoard() {
+	document.querySelectorAll(".payoutElement")
+			.forEach(element => element.classList.remove("highlighted", "deal", "draw"));
+	}
+
+	updatePayboard(outcome, state) {
+		this.clearPayoutBoard();
+		
+		// highlight row according to outcome
+		if(Game.winningOutcomes.includes(outcome)) {
+			let divLeft = document.querySelector("#" + stringToCamelCase(outcome));
+			divLeft.classList.add("highlighted", state);
+			let divRight = document.querySelector("#" + stringToCamelCase(outcome) + "Payout");
+			divRight.classList.add("highlighted", state);
 		}
-	}
-
-	updateLog(roundCount, result) { 
-		let newRow = document.createElement("div");
-		newRow.setAttribute("class", "displayLogRow");
-		newRow.setAttribute("id", "row" + roundCount);
-		let logDisplay = new DisplayHandler(".displayLog");
-		logDisplay.handler.appendChild(newRow);
-		logDisplay.enableScroll();
-
-		let content = "Round " + roundCount + ": " + result + "<br>";
-		let winning = Game.winningOutcomes.includes(result);
-		let fontColor = winning ? this.winningColor : this.losingColor;
-		let rowDisplay = new DisplayHandler("#row" + roundCount);
-		rowDisplay.addContent(content);
-		rowDisplay.setFontColor(fontColor);
 	}
 }
 
@@ -436,35 +503,38 @@ class Screen {
 
 class Game {
 
-	mode;
 	screen;
-	credit;
+	exitFlag;
+
 	roundCount;
 	toHold;
 
+	credit;
 	currentDeck;
 	initHand;
 	finalHand;
 	
 	initOutcome;
 	finalOutcome;
+	outcomes;
 
-	creditHistory;
+	credits;
 
 	static winningOutcomes = ["royal flush", "straight flush", "four of a kind", "full house",
 				"flush", "straight", "three of a kind", "two pair", "jacks or better"];
 	
 
-	newGame() {
-	
-		this.screen = new Screen();
-		this.creditHistory = [];
+	newGame(mode) {
+		this.screen = new Screen(mode);
+		this.credits = [];
+		this.outcomes = [];
 
 		this.roundCount = 0;
 		this.credit = 10;
-		this.creditHistory.push(this.credit);
-		
+		this.credits.push(this.credit);
+		this.outcomes.push("n/a");
 		this.screen.newGameState();
+		this.exitFlag = false;
 	}
 
 	deal() {
@@ -487,41 +557,51 @@ class Game {
 	hold(i) {
 		if(this.toHold.has(i)) {
 			this.toHold.delete(i);
-			this.screen.unpressHoldButton(i);
-			this.screen.unholdCard(i);
+			this.screen.holdButtons[i-1].unpress();
+			this.screen.cardDisplays[i-1].unpress();
+			
 		} else {
 			this.toHold.add(i);
-			this.screen.pressHoldButton(i);
-			this.screen.holdCard(i);
+			this.screen.holdButtons[i-1].press();
+			this.screen.cardDisplays[i-1].press();
 		}
 	} 
 
 	draw() {
+		let holds = this.screen.getHolds();
 	
 		// create new hand
 		this.finalHand = new Hand([]);
 		for(let i=1; i<=5; i++) {
-			if(this.toHold.has(i)) {
+			if(holds.has(i)) {
 				this.finalHand.addCard(this.initHand.getCard(i));
 			} else { this.finalHand.addCard(this.currentDeck.drawCard()); }
 		}
 
 		// post-draw outcome of the hand
 		this.finalOutcome = this.finalHand.getOutcome();
+		this.outcomes.push(this.finalOutcome);
 		let payout = this.finalHand.getPayout(); 
 		
 		this.screen.drawState(this.roundCount, this.finalHand, this.finalOutcome, 
 			this.credit, payout);
 			
 		this.credit += payout;
-		this.creditHistory.push(this.credit);
+		this.credits.push(this.credit);
 
-	
-		if(this.credit === 0 && payout === 0) { this.gameOver(); }
+		if(this.exitFlag) { this.credit = 0; payout = 0; } // TODO
+		if(this.credit === 0 && payout === 0) { this.gameOver(); } // TODO
+	}
+
+	exit() {
+		this.exitFlag = true;
+		this.screen.exitButton.hide();
+		this.screen.newGameButton.show();
+		this.gameOver();
 	}
 
 	gameOver() {
-		let creditString = this.creditHistory.map(credit => "<br>" + "*".repeat(credit))
+		let creditString = this.credits.map(credit => "<br>" + "*".repeat(credit))
 										.reduce((a,b) => a+b);
 		document.querySelector(".stats").innerHTML = creditString;
 		this.screen.gameOverState(this.roundCount);
@@ -535,7 +615,8 @@ class Game {
 	} 
 
 	speedGame() {
-		this.newGame();
+		this.screen = new Screen("speed");
+		this.newGame("speed");
 		let myId = setInterval(() => {
 			if(this.credit !== 0) {
 				this.autoRound(0,50);
@@ -544,7 +625,8 @@ class Game {
 	}
 
 	instaGame() {
-		this.newGame();
+		this.screen = new Screen("insta");
+		this.newGame("insta");
 		while(this.credit !== 0) {
 			this.deal();
 			this.draw();
@@ -553,4 +635,3 @@ class Game {
 }
 
 const myGame = new Game();
-
